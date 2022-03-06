@@ -1,4 +1,4 @@
-package org.msi.ftx1.remote.ftx
+package org.msi.ftx1.infra.remote.ftx
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -20,11 +20,16 @@ class FtxClient(
             .findArbitrable()
 
     fun getFutureMarkets(): List<String> =
-        get<Futures>("futures").result
-            .filter { it.enable && !it.expired && it.perpetual && it.underlying == "USD" }
+        get<FuturesMarket>("futures").result
+            .filter { it.enabled && !it.expired && it.perpetual}
             .map { it.name }
 
-    fun getHistory(symbol: String, resolution: Int = 300, startSeconds: Int = (System.currentTimeMillis()/1000).toInt() - 24*3600, endSeconds: Int = (System.currentTimeMillis()/1000).toInt()): List<History> =
+    fun getSpotMarkets(): List<String> =
+        get<FtxMarkets>("markets").result
+            .filter { it.enabled && it.type == "spot" && it.quoteCurrency == "USD"}
+            .map { it.name }
+
+    fun getHistory(symbol: String, resolution: Int = 300, startSeconds: Long = System.currentTimeMillis()/1000 - 24*3600, endSeconds: Long = System.currentTimeMillis()/1000): List<History> =
         get<Histories>("/markets/$symbol/candles?resolution=$resolution&start_time=$startSeconds&end_time=$endSeconds")
             .result
 

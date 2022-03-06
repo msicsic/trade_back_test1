@@ -1,4 +1,4 @@
-package org.msi.ftx1
+package org.msi.ftx1.infra.remote
 
 import org.http4k.websocket.Websocket
 import java.util.*

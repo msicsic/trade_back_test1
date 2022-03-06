@@ -1,4 +1,4 @@
-package org.msi.ftx1.controller
+package org.msi.ftx1.infra.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.http4k.core.Method.GET
@@ -18,8 +18,8 @@ import org.http4k.server.PolyHandler
 import org.http4k.server.asServer
 import org.http4k.websocket.Websocket
 import org.http4k.websocket.WsMessage
-import org.msi.ftx1.WsConnection
-import org.msi.ftx1.remote.ftx.FtxClient
+import org.msi.ftx1.infra.remote.WsConnection
+import org.msi.ftx1.infra.remote.ftx.FtxClient
 import java.util.*
 
 class MainController(

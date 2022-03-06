@@ -1,4 +1,4 @@
-package org.msi.ftx1.remote.ftx
+package org.msi.ftx1.infra.remote.ftx
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
@@ -33,7 +33,9 @@ data class FtxMarketInfo(
     val name: String,
     val enabled: Boolean,
     val price: Float,
-    val type: String
+    val type: String,
+    val quoteCurrency: String?,
+    val baseCurrency: String?
 ) {
     @JsonIgnore
     val token: String = name.split("/").get(0)
@@ -90,15 +92,15 @@ data class History(
     val volume: Double
 )
 
-data class Futures(
+data class FuturesMarket(
     val success: Boolean,
-    val result: List<Future>
+    val result: List<FutureMarket>
 )
 
-data class Future(
+data class FutureMarket(
     val ask: Double,
     val bid: Double,
-    val enable: Boolean,
+    val enabled: Boolean,
     val expired: Boolean,
     val name: String,
     val openInterest: Double,
