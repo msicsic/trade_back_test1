@@ -4,5 +4,18 @@ import java.time.LocalDateTime
 
 interface CandleChartProvider {
 
-    fun getFor(symbol: String, interval: CandleChartInterval, startTime: LocalDateTime, endTime: LocalDateTime): CandleChart
+    fun processCharts(
+        symbols: List<String>,
+        interval: CandleChartInterval,
+        startTime: LocalDateTime,
+        endTime: LocalDateTime,
+        candleChartConsumer: (CandleChart) -> Unit
+    )
+
+    fun getFor(
+        symbol: String,
+        interval: CandleChartInterval,
+        startTime: LocalDateTime,
+        endTime: LocalDateTime
+    ): CandleChart
 }
