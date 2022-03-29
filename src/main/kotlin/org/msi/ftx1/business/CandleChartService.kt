@@ -9,7 +9,7 @@ class CandleChartService {
     }
 
     fun currentVolatility(chart: CandleChart) = chart.run {
-        Percent((max - min) / chart.last)
+        Percent((max - min) / chart.latest.close)
     }
 
 }

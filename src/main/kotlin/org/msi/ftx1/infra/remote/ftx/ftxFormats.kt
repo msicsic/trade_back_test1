@@ -2,6 +2,10 @@ package org.msi.ftx1.infra.remote.ftx
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import org.msi.ftx1.business.CandleChartInterval
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import kotlin.math.abs
 
 
@@ -68,7 +72,6 @@ data class FtxTrades(
     val success: Boolean,
     val result: List<FtxTradeEntry>
 )
-
 data class FtxTradeEntry(
     val id: Long,
     val liquidation: Boolean,
@@ -76,21 +79,39 @@ data class FtxTradeEntry(
     val side: String,
     val size: Float,
     val time: String
-)
+) {
+    val timeAsDate get(): LocalDateTime = LocalDateTime.parse(time, dateParserTrades)
+    val timeAsMs get(): Long = timeAsDate.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+    val timeAsSeconds get(): Long = timeAsMs / 1000
+
+    companion object {
+        private val dateParserTrades = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'+00:00'")
+    }
+}
 
 data class Histories(
     val success: Boolean,
+    val candleChartInterval: CandleChartInterval,
+    val startTimeSeconds: Long,
+    val endTimeSeconds: Long,
     val result: List<History>
 )
 
 data class History(
-    val startTime: String,
-    val open: Double,
-    val close: Double,
-    val high: Double,
-    val low: Double,
-    val volume: Double
-)
+    val time: String,
+    val open: Float,
+    val close: Float,
+    val high: Float,
+    val low: Float,
+    val volume: Float
+) {
+    val timeAsDate get(): LocalDateTime = LocalDateTime.parse(time, dateParserHistory)
+    val timeAsSeconds get(): Long = timeAsDate.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() / 1000
+
+    companion object {
+        private val dateParserHistory = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'+00:00'")
+    }
+}
 
 data class FuturesMarket(
     val success: Boolean,
