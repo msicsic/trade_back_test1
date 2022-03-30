@@ -28,7 +28,7 @@ class Main(
 //            endTime = LocalDateTime.now()
 //        )
 //
-        val demo = BackTestDemo("BTC-PERP", LocalDateTime.now().minusDays(100), LocalDateTime.now(), barChartProvider)
+        val demo = BackTestDemo("BTC-PERP", LocalDateTime.now().minusDays(5), LocalDateTime.now(), barChartProvider)
         demo.start()
 
 //
@@ -63,13 +63,10 @@ class Main(
 //        System.err.println("result : " + results.sortedByDescending { it.second })
 //        System.err.println("DONE in $time ms")
 
-        // TODO: candleChart: il faut les TS de chaque candle et une Map pour eliminer les doublons
         // TODO: coRoutines pour chargement parallele des tranches de 1500 candles
 
         // TODO: volatility graph (absolute volat high-low for each candle) => pour repérer les squizes
         // TODO: volatility graph (relative volat open-close for each candle)
         // TODO: generate html page with graphs (JOCL?, JCuda?, JavaFX?)
-
-        // TODO: implement very basic strategy to bootstrap the strategy engine
     }
 }

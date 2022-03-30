@@ -93,7 +93,7 @@ class BackTestDemo(
         println(String.format("Profitability      : %.2f%%", 100.0 * report.profitability))
         println(String.format("Buy-and-hold       : %.2f%%", 100.0 * report.buyAndHoldProfitability))
         println(String.format("Vs buy-and-hold    : %.2f%%", 100.0 * report.vsBuyAndHold))
-        println(String.format("Total fees         : %.2f$", report.fees))
+        println(String.format("Total fees         : %.2f $", report.tradeHistory.fees))
         println(String.format("Win rate           : %.2f%%", 100.0 * report.winRate))
         println(String.format("Max drawdown       : %.2f%%", 100.0 * report.maxDrawDown))
         println(String.format("Risk/reward ratio  : %.2f", report.riskReward))

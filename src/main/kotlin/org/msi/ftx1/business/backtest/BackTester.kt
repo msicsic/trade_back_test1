@@ -80,10 +80,7 @@ object BackTester {
         val startPrice: Double = runTimeSeries.oldest.open
         return BackTestReport(
             spec = spec,
-            trades = tradeHistory.trades,
-            fees = tradeHistory.fees,
-            finalBalance = tradeHistory.balance,
-            maxDrawDown = tradeHistory.maxDrawDown,
+            tradeHistory = tradeHistory,
             startPrice = startPrice,
             endPrice = lastPrice,
         )

@@ -1,7 +1,7 @@
 package org.msi.ftx1.business.backtest
 
 /** Manages the history of active and inactive trades during a backtest.  */
-internal class TradeHistory(
+class TradeHistory(
     /** The simulated initial account balance.  */
     var balance: Double,
     /** The fee % charged by the exchange in each trade  */

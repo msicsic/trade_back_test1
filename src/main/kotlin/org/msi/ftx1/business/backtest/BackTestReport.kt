@@ -4,15 +4,12 @@ import kotlin.math.abs
 
 class BackTestReport(
     private val spec: BackTestSpec,
-    private val trades: List<TradeRecord>,
-    val fees: Double,
+    val tradeHistory: TradeHistory,
     private val startPrice: Double,
     private val endPrice: Double,
-    val finalBalance: Double,
-    val maxDrawDown: Double,
 ) {
     val tradeCount: Int
-        get() = trades.size
+        get() = tradeHistory.trades.size
 
     val pyramidingLimit: Int
         get() = spec.pyramidingLimit
@@ -22,6 +19,12 @@ class BackTestReport(
 
     val initialBalance: Double
         get() = spec.startingBalance
+
+    val finalBalance: Double
+        get() = tradeHistory.balance
+
+    val maxDrawDown: Double
+        get() = tradeHistory.maxDrawDown
 
     /**
      * The Sortino ratio with a risk-free rate of 0%.
@@ -35,22 +38,22 @@ class BackTestReport(
         get() = profitLoss / initialBalance
 
     val profitLoss: Double
-        get() = trades.sumOf { it.profitLoss }
+        get() = tradeHistory.trades.sumOf { it.profitLoss }
 
     val winRate: Double
         get() = winCount.toDouble() / tradeCount.toDouble()
 
     private val winCount: Int
-        get() = trades.filter { it.isProfitable }.count()
+        get() = tradeHistory.trades.count { it.isProfitable }
 
     val vsBuyAndHold: Double
-        get() = profitability / buyAndHoldProfitability - 1.0
+        get() = profitability - buyAndHoldProfitability
 
     val buyAndHoldProfitability: Double
-        get() = if (spec.tradeType === TradeType.LONG) (endPrice-startPrice) / startPrice else (startPrice-endPrice) / endPrice
+        get() = if (spec.tradeType === TradeType.LONG) (endPrice - startPrice) / startPrice else (startPrice - endPrice) / endPrice
 
     val riskReward: Double
-        get() = trades.sumOf { this.getRiskReward(it) } / tradeCount
+        get() = tradeHistory.trades.sumOf { this.getRiskReward(it) } / tradeCount
 
     private fun getRiskReward(tradeRecord: TradeRecord): Double {
         val positionSize = tradeRecord.entryPrice * tradeRecord.amount
