@@ -15,7 +15,7 @@ class FtxClient(
             .findArbitrable()
 
     fun getFutureMarkets(): List<String> =
-        get<FuturesMarket>("futures").result
+        get<FtxFuturesMarket>("futures").result
             .filter { it.enabled && !it.expired && it.perpetual }
             .map { it.name }
 
@@ -23,32 +23,6 @@ class FtxClient(
         get<FtxMarkets>("markets").result
             .filter { it.enabled && it.type == "spot" && it.quoteCurrency == "USD" }
             .map { it.name }
-
-    fun getHistory(
-        symbol: String,
-        resolution: Int = 300,
-        startSeconds: Long = System.currentTimeMillis() / 1000 - 24 * 3600,
-        endSeconds: Long = System.currentTimeMillis() / 1000
-    ): List<History> {
-        val result = mutableListOf<History>()
-        val times = mutableSetOf<Long>()
-        var partial: Histories? = null
-        var cursorSeconds = endSeconds
-        while (partial == null || partial.result.first().timeAsSeconds > startSeconds + resolution && partial.result.size > 1) {
-            partial = get("/markets/$symbol/candles?resolution=${resolution}&start_time=${startSeconds}&end_time=${cursorSeconds}")
-            System.err.println("get partial history $symbol for time $cursorSeconds, ${partial.result.size}")
-            result.addAll(partial.result)
-            val intersect = times.intersect(partial.result.map { it.timeAsSeconds }.toSet())
-            if (intersect.isNotEmpty()) {
-                System.err.println("doublons...")
-
-            }
-            if (partial.result.isNotEmpty()) {
-                cursorSeconds = partial.result.first().timeAsSeconds
-            }
-        }
-        return result
-    }
 
     fun getOrderBooks(symbol: String): FtxOrderBookResult =
         get<FtxOrderBook>("markets/$symbol/orderbook?depth=100").also { orderBook ->
@@ -63,34 +37,96 @@ class FtxClient(
             System.err.println(message)
         }.result
 
+    fun getHistory(
+        symbol: String,
+        resolution: Int = 300,
+        startSeconds: Long = System.currentTimeMillis() / 1000 - 24 * 3600,
+        endSeconds: Long = System.currentTimeMillis() / 1000
+    ): List<FtxHistory> {
+        val result = mutableListOf<FtxHistory>()
+        var partial: FtxHistories? = null
+        var cursorSeconds = endSeconds
+        while (partial == null || partial.result.first().timeAsSeconds > startSeconds + resolution && partial.result.size > 1) {
+            partial = _ftxHistory(symbol, resolution, startSeconds, cursorSeconds)
+            System.err.println("get partial history $symbol for time $cursorSeconds, ${partial.result.size}")
+            result.addAll(0, partial.result)
+            if (partial.result.isNotEmpty()) {
+                cursorSeconds = partial.result.first().timeAsSeconds
+            }
+        }
+        checkHistories(result)
+        return result
+    }
+
     fun getTrades(symbol: String, startTimeSeconds: Long, endTimeSeconds: Long): List<FtxTradeEntry> {
         val trades = mutableListOf<FtxTradeEntry>()
         var partialTrades: FtxTrades? = null
         var cursorSeconds = endTimeSeconds
         while (partialTrades == null || partialTrades.result.size >= 5000) {
-            partialTrades = ftxTrades(symbol, startTimeSeconds, cursorSeconds)
-            trades.addAll(partialTrades.result)
+            partialTrades = _ftxTrades(symbol, startTimeSeconds, cursorSeconds)
+            trades.addAll(0, partialTrades.result)
             System.err.println("get trades for time $cursorSeconds, ${partialTrades.result.size}")
             if (partialTrades.result.isNotEmpty()) {
                 cursorSeconds = partialTrades.result.last().timeAsSeconds
             }
         }
+        trades.sortBy { it.time }
+        checkTrades(trades)
         return trades
+    }
+
+    private fun checkTrades(trades: List<FtxTradeEntry>) {
+        (1 until trades.size).forEach { index ->
+            if (trades[index - 1].time > trades[index].time) throw IllegalStateException("Unordered trades: $index")
+        }
+        System.err.println("check ok")
+    }
+
+    private fun checkHistories(trades: List<FtxHistory>) {
+        (1 until trades.size).forEach { index ->
+            if (trades[index - 1].startTime > trades[index].startTime) throw IllegalStateException("Unordered trades: $index")
+        }
+        System.err.println("check ok")
     }
 
     /**
      * @param startTimeSeconds:  la date la plus ancienne
      * @param endTimeSeconds: la date la plus recente
      *
-     * Le trade le plus recent est retourné en premier (le plus proche de endTime),
+     * Le trade le plus recent est retourné EN PREMIER (index 0) (le plus proche de endTime),
      * Ordonnés de endDate à max(5000, startTime)
+     *
+     * Ex: END, END-1, END-2, ..., cursor
      */
-    private fun ftxTrades(
+    private fun _ftxTrades(
         symbol: String,
         startTimeSeconds: Long,
         endTimeSeconds: Long
-    ): FtxTrades = get("markets/$symbol/trades") {
+    ): FtxTrades = get<FtxTrades>("markets/$symbol/trades") {
         it
+            .query("start_time", startTimeSeconds.toString())
+            .query("end_time", endTimeSeconds.toString())
+    }.let { ftxTrades ->
+        FtxTrades(ftxTrades.success, ftxTrades.result.sortedBy { it.time })
+    }
+
+    /**
+     * @param startTimeSeconds:  la date la plus ancienne
+     * @param endTimeSeconds: la date la plus recente
+     *
+     * Le trade le plus recent est retourné EN DERNIER (index 1499) (le plus proche de endTime),
+     * Ordonnés de endDate à max(1500, startTime)
+     *
+     * Ex: START, ..., END-2, END-1, END
+     */
+    private fun _ftxHistory(
+        symbol: String,
+        resolution: Int,
+        startTimeSeconds: Long,
+        endTimeSeconds: Long
+    ): FtxHistories = get<FtxHistories>("/markets/$symbol/candles") {
+        it
+            .query("resolution", resolution.toString())
             .query("start_time", startTimeSeconds.toString())
             .query("end_time", endTimeSeconds.toString())
     }
@@ -99,6 +135,7 @@ class FtxClient(
         val req = request(Request(Method.GET, "https://ftx.com/api/$uri"))
         return client.get(req)
     }
+
 
     private inline fun <reified T : Any> HttpHandler.get(req: Request): T =
         objectMapper.readValue(this(req).bodyString())

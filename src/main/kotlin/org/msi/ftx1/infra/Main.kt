@@ -21,14 +21,14 @@ class Main(
 ) {
 
     fun start() {
-
-//        val fullChart = candleChartProvider.getTrades(
+//
+//        val fullChart = barChartProvider.getTrades(
 //            symbol = "BTC-PERP",
-//            startTime = LocalDateTime.now().minusDays(10),
+//            startTime = LocalDateTime.now().minusDays(1),
 //            endTime = LocalDateTime.now()
 //        )
 //
-        val demo = BackTestDemo("BTC-PERP", LocalDateTime.now().minusDays(300), LocalDateTime.now(), barChartProvider)
+        val demo = BackTestDemo("BTC-PERP", LocalDateTime.now().minusDays(100), LocalDateTime.now(), barChartProvider)
         demo.start()
 
 //

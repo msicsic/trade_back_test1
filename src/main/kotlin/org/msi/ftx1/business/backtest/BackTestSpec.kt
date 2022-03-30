@@ -29,7 +29,7 @@ data class BackTestSpec(
     /** The initial account balance, in counter currency amount. */
     val startingBalance: Double = 10000.0,
     /** The average fee % charged by the exchange in each trade. */
-    val feePerTrade: Double = 0.001,
+    val feePerTrade: Double = 0.064*2 / 100.0,
     var pyramidingLimit: Int = 1,
     /** Level at which we exit 50% of the position. */
     val takeProfitIndicator: Indicator? = null,

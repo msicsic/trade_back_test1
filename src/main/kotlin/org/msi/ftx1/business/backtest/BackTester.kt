@@ -1,7 +1,6 @@
 package org.msi.ftx1.business.backtest
 
 import org.msi.ftx1.business.BarChart
-import org.msi.ftx1.business.TimeFrame
 import org.msi.ftx1.business.indicator.latestValue
 import org.msi.ftx1.business.signal.SignalType
 
@@ -10,7 +9,7 @@ object BackTester {
     fun run(spec: BackTestSpec): BackTestReport {
         val inputBars = spec.provider.getCandleChart(
             symbol = spec.symbol,
-            interval = TimeFrame.HOUR_1,
+            interval = spec.runTimeFrame,
             startTime = spec.startTime,
             endTime = spec.endTime
         )
@@ -82,6 +81,7 @@ object BackTester {
         return BackTestReport(
             spec = spec,
             trades = tradeHistory.trades,
+            fees = tradeHistory.fees,
             finalBalance = tradeHistory.balance,
             maxDrawDown = tradeHistory.maxDrawDown,
             startPrice = startPrice,

@@ -1,8 +1,11 @@
 package org.msi.ftx1.business.backtest
 
+import kotlin.math.abs
+
 class BackTestReport(
     private val spec: BackTestSpec,
     private val trades: List<TradeRecord>,
+    val fees: Double,
     private val startPrice: Double,
     private val endPrice: Double,
     val finalBalance: Double,
@@ -44,7 +47,7 @@ class BackTestReport(
         get() = profitability / buyAndHoldProfitability - 1.0
 
     val buyAndHoldProfitability: Double
-        get() = if (spec.tradeType === TradeType.LONG) endPrice / startPrice else startPrice / endPrice
+        get() = if (spec.tradeType === TradeType.LONG) (endPrice-startPrice) / startPrice else (startPrice-endPrice) / endPrice
 
     val riskReward: Double
         get() = trades.sumOf { this.getRiskReward(it) } / tradeCount
@@ -52,7 +55,7 @@ class BackTestReport(
     private fun getRiskReward(tradeRecord: TradeRecord): Double {
         val positionSize = tradeRecord.entryPrice * tradeRecord.amount
         val profitLoss = tradeRecord.profitLoss
-        val percentageProfitLoss = 1 + profitLoss / (positionSize - Math.abs(profitLoss))
+        val percentageProfitLoss = 1 + profitLoss / (positionSize - abs(profitLoss))
         return percentageProfitLoss / maxDrawDown
     }
 }

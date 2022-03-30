@@ -1,11 +1,11 @@
 package org.msi.ftx1.infra.remote.ftx
 
-data class FuturesMarket(
+data class FtxFuturesMarket(
     val success: Boolean,
-    val result: List<FutureMarket>
+    val result: List<FtxFutureMarket>
 )
 
-data class FutureMarket(
+data class FtxFutureMarket(
     val ask: Double,
     val bid: Double,
     val enabled: Boolean,

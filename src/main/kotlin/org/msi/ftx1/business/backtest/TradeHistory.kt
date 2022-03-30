@@ -8,6 +8,7 @@ internal class TradeHistory(
     private val feePerTrade: Double,
 ) {
     val trades: MutableList<TradeRecord> = mutableListOf()
+    var fees: Double = 0.0
 
     /** The maximum account equity value (balance + active trade value) reached.  */
     var maxEquity = balance
@@ -20,6 +21,7 @@ internal class TradeHistory(
     operator fun plusAssign(trade: TradeRecord) {
         require(trade.amount > 0.0)
         trades.add(trade)
+        fees += trade.entryPrice * trade.amount * feePerTrade
         balance -= trade.entryPrice * trade.amount * (1.0 + feePerTrade)
     }
 
@@ -32,6 +34,7 @@ internal class TradeHistory(
     fun exitActiveTrades(currentPrice: Double) {
         activeTrades.forEach { trade ->
             trade.exit(currentPrice)
+            fees += trade.amount * currentPrice * feePerTrade
             balance += trade.amount * currentPrice * (1.0 - feePerTrade)
         }
     }

@@ -30,13 +30,13 @@ class BackTestDemo(
             // Whether to move the stop loss as the price moves up.
             trailingStops = false,
             // The limit of simultaneous trades.
-            pyramidingLimit = 2,
+            pyramidingLimit = 1,
             // Starting account balance, in counter currency units. E.g. USD for a BTC/USD pair.
             startingBalance = 20000.0,
             // Risks 2% of the account in each trade.
             betSize = 0.02,
             // The % fee charged by the exchange in each trade. E.g. Binance charges 0.1% per trade.
-            feePerTrade = 0.001,
+            feePerTrade = 0.064 / 100.0,
             // Defines the factory method that builds the trading strategy when needed.
             strategyFactory = { seriesManager -> makeStrategy(seriesManager) },
             // Defines the factory method that builds the stop-loss price indicator.
@@ -58,7 +58,7 @@ class BackTestDemo(
 
         // Creates the 1-hour indicators.
         val h1price = h1.closePrice
-        val h1cci = h1.cci(10)
+        val h1cci = h1.cci(20)
         val h1ema4 = h1price.ema(4)
         val h1sma20 = h1price.sma(20)
         val h1ema30 = h1price.ema(30)
@@ -93,6 +93,7 @@ class BackTestDemo(
         println(String.format("Profitability      : %.2f%%", 100.0 * report.profitability))
         println(String.format("Buy-and-hold       : %.2f%%", 100.0 * report.buyAndHoldProfitability))
         println(String.format("Vs buy-and-hold    : %.2f%%", 100.0 * report.vsBuyAndHold))
+        println(String.format("Total fees         : %.2f$", report.fees))
         println(String.format("Win rate           : %.2f%%", 100.0 * report.winRate))
         println(String.format("Max drawdown       : %.2f%%", 100.0 * report.maxDrawDown))
         println(String.format("Risk/reward ratio  : %.2f", report.riskReward))

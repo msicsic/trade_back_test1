@@ -4,12 +4,12 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-data class Histories(
+data class FtxHistories(
     val success: Boolean,
-    val result: List<History>
+    val result: List<FtxHistory>
 )
 
-data class History(
+data class FtxHistory(
     val startTime: String,
     val open: Double,
     val close: Double,
