@@ -1,6 +1,6 @@
 package org.msi.ftx1.business.indicator
 
-import org.msi.ftx1.business.CandleChart
+import org.msi.ftx1.business.BarChart
 
 /**
  * Keltner channel indicators.
@@ -11,7 +11,7 @@ import org.msi.ftx1.business.CandleChart
  *    val keltnerUpper = keltner.upperChannel
  *    val keltnerLower = keltner.lowerChannel
  */
-fun CandleChart.keltnerChannel(length: Int = 20, atrLength: Int = 10, atrMultiplier: Double = 2.0): KeltnerChannel {
+fun BarChart.keltnerChannel(length: Int = 20, atrLength: Int = 10, atrMultiplier: Double = 2.0): KeltnerChannel {
     val ema = typicalPrice.ema(length)
     val atr = averageTrueRange(atrLength)
 

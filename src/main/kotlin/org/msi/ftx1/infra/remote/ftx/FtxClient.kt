@@ -10,7 +10,7 @@ class FtxClient(
     private val client: HttpHandler,
     private val objectMapper: ObjectMapper
 ) {
-    fun findArbitrableMarkets(): List<Pair<String, Float>> =
+    fun findArbitrableMarkets(): List<Pair<String, Double>> =
         get<FtxMarkets>("markets")
             .findArbitrable()
 
@@ -35,8 +35,7 @@ class FtxClient(
         var partial: Histories? = null
         var cursorSeconds = endSeconds
         while (partial == null || partial.result.first().timeAsSeconds > startSeconds + resolution && partial.result.size > 1) {
-            partial =
-                get("/markets/$symbol/candles?resolution=${resolution}&start_time=${startSeconds}&end_time=${cursorSeconds}")
+            partial = get("/markets/$symbol/candles?resolution=${resolution}&start_time=${startSeconds}&end_time=${cursorSeconds}")
             System.err.println("get partial history $symbol for time $cursorSeconds, ${partial.result.size}")
             result.addAll(partial.result)
             val intersect = times.intersect(partial.result.map { it.timeAsSeconds }.toSet())

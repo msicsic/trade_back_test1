@@ -1,14 +1,14 @@
 package org.msi.ftx1.business
 
-data class PriceChart(
+data class TradeChart(
     val symbol: String,
     val startTimeSeconds: Long,
     val endTimeSeconds: Long,
-    val data: List<PriceEntry>
+    val data: List<Trade>
 )
 
-data class PriceEntry(
+data class Trade(
     val timeSecondes: Long,
-    val value: Float,
-    val volume: Float
+    val value: Double,
+    val volume: Double
 )

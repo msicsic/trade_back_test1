@@ -1,24 +1,30 @@
 package org.msi.ftx1.business.backtest
 
-import org.msi.ftx1.business.CandleChart
+import org.msi.ftx1.business.BarChart
+import org.msi.ftx1.business.TimeFrame
 import org.msi.ftx1.business.indicator.latestValue
 import org.msi.ftx1.business.signal.SignalType
 
 object BackTester {
 
     fun run(spec: BackTestSpec): BackTestReport {
-        val inputBars = spec.inputBars
+        val inputBars = spec.provider.getCandleChart(
+            symbol = spec.symbol,
+            interval = TimeFrame.HOUR_1,
+            startTime = spec.startTime,
+            endTime = spec.endTime
+        )
         val inputTimeFrame = inputBars[0].interval
-        val timeSeriesManager = CandleChart(inputTimeFrame)
+        val timeSeriesManager = BarChart(spec.symbol, inputTimeFrame, spec.startTime)
         val strategy = spec.strategyFactory.buildStrategy(timeSeriesManager)
         val stopLoss = spec.stopLoss.buildIndicator(timeSeriesManager)
-        val runTimeSeries = timeSeriesManager.downSample(spec.runTimeFrame)
+        val runTimeSeries = timeSeriesManager.getDownSampledChart(spec.runTimeFrame)
         val tradeHistory = TradeHistory(
             balance = spec.startingBalance,
             feePerTrade = spec.feePerTrade
         )
 
-        for (inputBar in inputBars) {
+        for (inputBar in inputBars._data) {
             timeSeriesManager += inputBar
             val currentPrice = inputBar.close
 

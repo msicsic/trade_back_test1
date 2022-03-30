@@ -7,7 +7,7 @@ internal class FtxTradeEntryTest {
 
     @Test
     fun getTimeAsMs() {
-        val entry = FtxTradeEntry(1, false, 100f, "buy", 10f, "2022-03-20T18:16:23.397991+00:00")
+        val entry = FtxTradeEntry(1, false, 100.0, "buy", 10.0, "2022-03-20T18:16:23.397991+00:00")
 
         val date = entry.timeAsMs
         assertEquals(1647796583397, date)
@@ -15,7 +15,7 @@ internal class FtxTradeEntryTest {
 
     @Test
     fun getTimeAsSeconds() {
-        val entry = FtxTradeEntry(1, false, 100f, "buy", 10f, "2022-03-20T18:16:23.397991+00:00")
+        val entry = FtxTradeEntry(1, false, 100.0, "buy", 10.0, "2022-03-20T18:16:23.397991+00:00")
 
         val date = entry.timeAsSeconds
         assertEquals(1647796583, date)
@@ -23,7 +23,7 @@ internal class FtxTradeEntryTest {
 
     @Test
     fun getTimeAsDate() {
-        val entry = FtxTradeEntry(1, false, 100f, "buy", 10f, "2022-03-20T18:16:23.397991+00:00")
+        val entry = FtxTradeEntry(1, false, 100.0, "buy", 10.0, "2022-03-20T18:16:23.397991+00:00")
 
         val date = entry.timeAsDate
         assertEquals(2022, date.year)

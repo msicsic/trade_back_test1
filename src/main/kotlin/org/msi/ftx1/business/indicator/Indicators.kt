@@ -1,6 +1,6 @@
 package org.msi.ftx1.business.indicator
 
-import org.msi.ftx1.business.CandleChart
+import org.msi.ftx1.business.BarChart
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -8,25 +8,25 @@ import kotlin.math.max
 // Basic price indicators
 // ===========================================================
 
-val CandleChart.openPrice: Indicator
+val BarChart.openPrice: Indicator
     get() = Indicator { index -> this[index].open }
 
-val CandleChart.highPrice: Indicator
+val BarChart.highPrice: Indicator
     get() = Indicator { index -> this[index].high }
 
-val CandleChart.lowPrice: Indicator
+val BarChart.lowPrice: Indicator
     get() = Indicator { index -> this[index].low }
 
-val CandleChart.closePrice: Indicator
+val BarChart.closePrice: Indicator
     get() = Indicator { index -> this[index].close }
 
-val CandleChart.volume: Indicator
+val BarChart.volume: Indicator
     get() = Indicator { index -> this[index].volume }
 
-val CandleChart.hlc3Price: Indicator
+val BarChart.hlc3Price: Indicator
     get() = typicalPrice
 
-val CandleChart.typicalPrice: Indicator
+val BarChart.typicalPrice: Indicator
     get() = Indicator { index ->
         with(this[index]) {
             (high + low + close) / 3
@@ -134,12 +134,12 @@ fun Indicator.modifiedMovingAverage(length: Int = 14): Indicator {
  * Average True range (ATR) indicator.
  * {@see https://www.investopedia.com/terms/a/atr.asp}
  */
-fun CandleChart.averageTrueRange(length: Int = 14): Indicator {
+fun BarChart.averageTrueRange(length: Int = 14): Indicator {
     return this.trueRange().modifiedMovingAverage(length)
 }
 
 /** True Range indicator. */
-fun CandleChart.trueRange(): Indicator =
+fun BarChart.trueRange(): Indicator =
     Indicator { index ->
         val bar = this[index]
         val high = bar.high
@@ -152,7 +152,7 @@ fun CandleChart.trueRange(): Indicator =
     }
 
 /** The Commodity Channel Index (CCI) indicator. */
-fun CandleChart.cci(length: Int = 20): Indicator {
+fun BarChart.cci(length: Int = 20): Indicator {
     val typicalPrice = typicalPrice
     val priceSma = typicalPrice.simpleMovingAverage(length)
     val meanDeviation = typicalPrice.meanDeviation(length)
@@ -173,7 +173,7 @@ private const val CCI_FACTOR = 0.015
  *
  * {@see https://www.investopedia.com/terms/s/stochasticoscillator.asp}
  */
-fun CandleChart.stochastic(length: Int = 20): Indicator {
+fun BarChart.stochastic(length: Int = 20): Indicator {
     val closePrice = closePrice
     val maxPrice = highPrice.highestValue(length)
     val minPrice = lowPrice.lowestValue(length)
@@ -220,7 +220,7 @@ fun Indicator.meanDeviation(length: Int = 20): Indicator {
 // ===========================================================
 
 /** Volatility (ATR) -based stop loss indicator.  */
-fun CandleChart.volatilityStop(length: Int = 22, multiplier: Double = 2.0): Indicator {
+fun BarChart.volatilityStop(length: Int = 22, multiplier: Double = 2.0): Indicator {
     val atr = this.averageTrueRange(length)
     val price = this.lowPrice.lowestValue(length = length)
 
@@ -230,7 +230,7 @@ fun CandleChart.volatilityStop(length: Int = 22, multiplier: Double = 2.0): Indi
 }
 
 /** Defines a stop loss some distance below the highest value of the previous [length] bars. */
-fun CandleChart.chandelierStop(length: Int = 10, atrDistance: Double = 3.0): Indicator {
+fun BarChart.chandelierStop(length: Int = 10, atrDistance: Double = 3.0): Indicator {
     val atr = this.averageTrueRange(length)
     val minPrice = highPrice.highestValue(length)
 

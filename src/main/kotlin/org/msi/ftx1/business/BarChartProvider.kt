@@ -2,26 +2,26 @@ package org.msi.ftx1.business
 
 import java.time.LocalDateTime
 
-interface CandleChartProvider {
+interface BarChartProvider {
 
     fun processCharts(
         symbols: List<String>,
-        interval: CandleChartInterval,
+        interval: TimeFrame,
         startTime: LocalDateTime,
         endTime: LocalDateTime,
-        candleChartConsumer: (CandleChart) -> Unit
+        candleChartConsumer: (BarChart) -> Unit
     )
 
     fun getCandleChart(
         symbol: String,
-        interval: CandleChartInterval,
+        interval: TimeFrame,
         startTime: LocalDateTime,
         endTime: LocalDateTime
-    ): CandleChart
+    ): BarChart
 
     fun getTrades(
         symbol: String,
         startTime: LocalDateTime,
         endTime: LocalDateTime
-    ): PriceChart
+    ): TradeChart
 }

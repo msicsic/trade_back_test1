@@ -1,7 +1,5 @@
 package org.msi.ftx1.business
 
-import java.time.LocalDateTime
-
 interface MarketProvider {
 
     fun getSpotMarkets(): List<Market>

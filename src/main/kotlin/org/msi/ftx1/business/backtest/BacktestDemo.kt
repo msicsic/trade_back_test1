@@ -1,24 +1,32 @@
 package org.msi.ftx1.business.backtest
 
-import org.msi.ftx1.business.CandleChart
-import org.msi.ftx1.business.CandleChartInterval
-import org.msi.ftx1.business.indicator.Indicator
-import org.msi.ftx1.business.indicator.ema
-import org.msi.ftx1.business.signal.Strategy
-import org.msi.ftx1.business.signal.and
-import org.msi.ftx1.business.signal.isOver
+import org.msi.ftx1.business.BarChart
+import org.msi.ftx1.business.BarChartProvider
+import org.msi.ftx1.business.TimeFrame
+import org.msi.ftx1.business.indicator.*
+import org.msi.ftx1.business.signal.*
+import java.time.LocalDateTime
 
 /** A sample back tester and strategy implementation. */
-object BackTestDemo {
-    @JvmStatic
-    fun main(args: Array<String>) {
+class BackTestDemo(
+    val symbol: String,
+    val startTime: LocalDateTime,
+    val endTime: LocalDateTime,
+    val provider: BarChartProvider
+) {
+
+    fun start() {
 
         // Sets up the backtest settings.
         val spec = BackTestSpec(
+            symbol = symbol,
+            provider = provider,
+            startTime = startTime,
+            endTime = endTime,
             tradeType = TradeType.LONG,
             // Defines the timeframe the strategy will run on. In this case the strategy will be evaluated every 1 hour,
             // even though the input data consists of 5-minute bars.
-            runTimeFrame = CandleChartInterval.HOUR_1,
+            runTimeFrame = TimeFrame.HOUR_1,
             // Whether to move the stop loss as the price moves up.
             trailingStops = false,
             // The limit of simultaneous trades.
@@ -29,16 +37,10 @@ object BackTestDemo {
             betSize = 0.02,
             // The % fee charged by the exchange in each trade. E.g. Binance charges 0.1% per trade.
             feePerTrade = 0.001,
-            // Defines the historical data to run the backtest over.
-            inputBars = readCsvBars("sampledata/chart_data_BTC_USDT_p5_730d.csv"),
             // Defines the factory method that builds the trading strategy when needed.
-            strategyFactory = { seriesManager ->
-                makeStrategy(seriesManager)
-            },
+            strategyFactory = { seriesManager -> makeStrategy(seriesManager) },
             // Defines the factory method that builds the stop-loss price indicator.
-            stopLoss = { timeSeries ->
-                timeSeries.h4.volatilityStop(length = 4, multiplier = 0.2)
-            }
+            stopLoss = { timeSeries -> timeSeries.h4.volatilityStop(length = 4, multiplier = 0.2) }
         )
 
         // Runs the backtest over the whole test dataset.
@@ -48,7 +50,7 @@ object BackTestDemo {
         printReport(report)
     }
 
-    private fun makeStrategy(seriesManager: CandleChart): Strategy {
+    private fun makeStrategy(seriesManager: BarChart): Strategy {
 
         // The timeframes our indicators will use.
         val h1 = seriesManager.h1 // 1 hour

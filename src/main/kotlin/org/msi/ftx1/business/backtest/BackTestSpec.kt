@@ -1,20 +1,26 @@
 package org.msi.ftx1.business.backtest
 
-import org.msi.ftx1.business.CandleChart
-import org.msi.ftx1.business.CandleChartInterval
-import org.msi.ftx1.business.CandleStick
+import org.msi.ftx1.business.BarChart
+import org.msi.ftx1.business.BarChartProvider
+import org.msi.ftx1.business.TimeFrame
 import org.msi.ftx1.business.indicator.Indicator
 import org.msi.ftx1.business.signal.Strategy
+import java.time.LocalDateTime
 
 /** Specifies the configuration for a back test run.  */
 data class BackTestSpec(
+    val symbol: String,
+    val provider: BarChartProvider,
+    val startTime: LocalDateTime,
+    val endTime: LocalDateTime,
+
     val tradeType: TradeType = TradeType.LONG,
     /** The base time frame at which the back tester runs. This is typically the time frame of the fastest indicator. */
-    val runTimeFrame: CandleChartInterval,
+    val runTimeFrame: TimeFrame,
     /** The strategy to back test. */
     val strategyFactory: StrategyFactory,
     /** The input bars to use in backtesting. Must be in the same time frame as the base time frame, or faster. */
-    val inputBars: List<CandleStick>,
+   // val inputBars: BarChart,
     /** The stop loss level */
     val stopLoss: StopLossFactory,
     val trailingStops: Boolean,
@@ -30,9 +36,9 @@ data class BackTestSpec(
 )
 
 fun interface StopLossFactory {
-    fun buildIndicator(timeSeriesManager: CandleChart): Indicator
+    fun buildIndicator(timeSeriesManager: BarChart): Indicator
 }
 
 fun interface StrategyFactory {
-    fun buildStrategy(timeSeriesManager: CandleChart): Strategy
+    fun buildStrategy(timeSeriesManager: BarChart): Strategy
 }

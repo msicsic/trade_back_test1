@@ -1,23 +1,22 @@
 package org.msi.ftx1.infra
 
 import org.msi.ftx1.business.*
+import org.msi.ftx1.business.backtest.BackTestDemo
 import java.time.LocalDateTime
-import java.util.*
-import kotlin.system.measureTimeMillis
 
 fun main() {
     Config().configure().apply {
         Main(
-            candleChartProvider = candleChartProvider,
-            candleChartService = candleChartService,
+            barChartProvider = barChartProvider,
+            barChartService = barChartService,
             marketProvider = marketProvider
         ).start()
     }
 }
 
 class Main(
-    private val candleChartProvider: CandleChartProvider,
-    private val candleChartService: CandleChartService,
+    private val barChartProvider: BarChartProvider,
+    private val barChartService: BarChartService,
     private val marketProvider: MarketProvider
 ) {
 
@@ -29,12 +28,16 @@ class Main(
 //            endTime = LocalDateTime.now()
 //        )
 //
-        val chart = candleChartProvider.getCandleChart(
-            symbol = "BTC-PERP",
-            interval = CandleChartInterval.MIN_15,
-            startTime = LocalDateTime.now().minusDays(360),
-            endTime = LocalDateTime.now()
-        )
+        val demo = BackTestDemo("BTC-PERP", LocalDateTime.now().minusDays(300), LocalDateTime.now(), barChartProvider)
+        demo.start()
+
+//
+//        val chart = barChartProvider.getCandleChart(
+//            symbol = "BTC-PERP",
+//            interval = TimeFrame.MIN_15,
+//            startTime = LocalDateTime.now().minusDays(360),
+//            endTime = LocalDateTime.now()
+//        )
 //
 //        val volatility = candleChartService.currentVolatility(chart)
 //        System.err.println("volatility: $volatility, min / max / mean : ${chart.min} / ${chart.max} / ${chart.mean}")

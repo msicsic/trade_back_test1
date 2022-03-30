@@ -8,11 +8,11 @@ import org.msi.ftx1.infra.remote.ftx.FtxClient
 import java.time.LocalDateTime
 import java.time.ZoneId
 
-class CandleChartAdapterFTX(
+class BarChartAdapterFTX(
     private val client: FtxClient
-) : CandleChartProvider {
+) : BarChartProvider {
 
-    override fun getTrades(symbol: String, startTime: LocalDateTime, endTime: LocalDateTime) = PriceChart(
+    override fun getTrades(symbol: String, startTime: LocalDateTime, endTime: LocalDateTime) = TradeChart(
         symbol = symbol,
         startTimeSeconds = startTime.epochSecond,
         endTimeSeconds = endTime.epochSecond,
@@ -21,16 +21,16 @@ class CandleChartAdapterFTX(
             startTimeSeconds = startTime.epochSecond,
             endTimeSeconds = endTime.epochSecond
         ).map {
-            PriceEntry(it.timeAsSeconds, it.price, it.size)
+            Trade(it.timeAsSeconds, it.price, it.size)
         }
     )
 
     override fun processCharts(
         symbols: List<String>,
-        interval: CandleChartInterval,
+        interval: TimeFrame,
         startTime: LocalDateTime,
         endTime: LocalDateTime,
-        candleChartConsumer: (CandleChart) -> Unit
+        candleChartConsumer: (BarChart) -> Unit
     ): Unit = runBlocking(Dispatchers.IO) {
         val symbolsChannel = produceSymbols(symbols)
         val chartsChannel = produceCharts(symbolsChannel, interval, startTime, endTime, symbols.size / 2)
@@ -39,33 +39,31 @@ class CandleChartAdapterFTX(
 
     override fun getCandleChart(
         symbol: String,
-        interval: CandleChartInterval,
+        interval: TimeFrame,
         startTime: LocalDateTime,
         endTime: LocalDateTime
-    ): CandleChart =
-        client.getHistory(
-            symbol = symbol, resolution = interval.seconds,
+    ) = BarChart(
+        symbol = symbol,
+        interval = interval,
+        startTime = startTime,
+        _data = client.getHistory(
+            symbol = symbol,
+            resolution = interval.seconds,
             startSeconds = startTime.epochSecond,
             endSeconds = endTime.epochSecond
         ).map {
-            CandleStick(
-                timeSeconds = it.timeAsSeconds,
+            Bar(
                 interval = interval,
+                openTime = it.timeAsSeconds,
                 open = it.open,
                 close = it.close,
                 high = it.high,
                 low = it.low,
-                volume = it.volume
+                volume = it.volume,
+                valid = true
             )
-        }.let {
-            CandleChart(
-                symbol = symbol,
-                interval = interval,
-                startTimeSeconds = startTime.epochSecond,
-                endTimeSeconds = endTime.epochSecond,
-                data = it
-            )
-        }
+        }.toMutableList()
+    )
 
     private fun CoroutineScope.produceSymbols(symbols: List<String>): ReceiveChannel<String> {
         val channelOut = Channel<String>()
@@ -78,12 +76,12 @@ class CandleChartAdapterFTX(
 
     private fun CoroutineScope.produceCharts(
         symbolsChannel: ReceiveChannel<String>,
-        interval: CandleChartInterval,
+        interval: TimeFrame,
         startTime: LocalDateTime,
         endTime: LocalDateTime,
         nbCoroutines: Int
-    ): ReceiveChannel<CandleChart> {
-        val channelOut = Channel<CandleChart>()
+    ): ReceiveChannel<BarChart> {
+        val channelOut = Channel<BarChart>()
         val jobs = mutableListOf<Job>()
         repeat(nbCoroutines) {
             jobs.add(launch {
@@ -100,8 +98,8 @@ class CandleChartAdapterFTX(
     }
 
     private fun CoroutineScope.consumeCharts(
-        chartsChannel: ReceiveChannel<CandleChart>,
-        candleChartConsumer: (CandleChart) -> Unit,
+        chartsChannel: ReceiveChannel<BarChart>,
+        candleChartConsumer: (BarChart) -> Unit,
         nbCoroutines: Int
     ) {
         repeat(nbCoroutines) {
