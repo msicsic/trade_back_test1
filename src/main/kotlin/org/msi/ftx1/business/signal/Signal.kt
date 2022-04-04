@@ -8,7 +8,7 @@ enum class SignalType {
     /** Enter a new trade.  */
     ENTRY,
     /** Exit all active trades.  */
-    EXIT
+    EXIT_TAKE_PROFIT
 }
 
 /**

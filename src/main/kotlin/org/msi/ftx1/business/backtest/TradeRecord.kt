@@ -2,6 +2,8 @@ package org.msi.ftx1.business.backtest
 
 import org.msi.ftx1.business.backtest.TradeType.LONG
 import org.msi.ftx1.business.backtest.TradeType.SHORT
+import java.lang.Double.max
+import java.lang.Double.min
 
 enum class TradeType {
     LONG, SHORT
@@ -13,73 +15,58 @@ enum class CloseReason {
 
 /** A simulated trade record. */
 data class TradeRecord(
-    val type: TradeType = LONG,
-    val timestamp: Long? = null,
-    val entryPrice: Double = 0.0,
-    val amount: Double = 0.0,
-    val trailingStopDistance: Double = 0.0,
-    var stopLossPrice: Double = 0.0,
+    var feesPercent: Double,
+    val type: TradeType,
+    val timestamp: Long,
+    val entryPrice: Double,
+    val amount: Double,
+    val exposure: Double,
+    private var currentPrice: Double = entryPrice,
+    var minPrice: Double = entryPrice,
+    var maxPrice: Double = entryPrice,
     var closeReason: CloseReason? = null,
     var exitPrice: Double? = null,
 ) {
 
-    val isProfitable: Boolean
-        get() = requireNotNull(exitPrice).let { exitPrice ->
-            when (type) {
-                LONG -> exitPrice > entryPrice
-                SHORT -> exitPrice < entryPrice
-            }
-        }
+    val isOpen: Boolean get() = closeReason == null
+    val isProfitable: Boolean get() = profitLoss > 0.0
+    val fees: Double get() = feesPercent * amount * (entryPrice + currentPrice)
 
     val profitLoss: Double
-        get() = requireNotNull(exitPrice).let { exitPrice ->
-            when (type) {
-                LONG -> amount * (exitPrice - entryPrice)
-                SHORT -> amount * (entryPrice - exitPrice)
-            }
+        get() = when (type) {
+            LONG -> amount * (currentPrice - entryPrice) - fees
+            SHORT -> amount * (entryPrice - currentPrice) - fees
         }
 
-    fun getUnrealizedProfitLoss(currentPrice: Double): Double =
-        when (type) {
-            LONG -> amount * (currentPrice - entryPrice)
-            SHORT -> amount * (entryPrice - currentPrice)
+    val drawDown: Double
+        get() = when (type) {
+            LONG -> amount * (entryPrice - minPrice) - fees
+            SHORT -> amount * (entryPrice - minPrice) - fees
         }
 
-    fun updateTrailingStop(currentPrice: Double) {
-        when (type) {
-            LONG -> {
-                if (currentPrice - trailingStopDistance > stopLossPrice) {
-                    stopLossPrice = currentPrice - trailingStopDistance
-                }
-            }
-            SHORT -> {
-                if (currentPrice + trailingStopDistance < stopLossPrice) {
-                    stopLossPrice = currentPrice + trailingStopDistance
-                }
-            }
+    fun updateCurrentPrice(price: Double) {
+        currentPrice = price
+        minPrice = min(minPrice, price)
+        maxPrice = max(maxPrice, price)
+        if (shouldStop()) {
+            stop()
         }
     }
 
-    fun shouldStop(currentPrice: Double): Boolean {
+    fun exit() {
         require(isOpen)
-        return when (type) {
-            LONG -> currentPrice < stopLossPrice
-            SHORT -> currentPrice > stopLossPrice
-        }
+        this.closeReason = CloseReason.EXIT
+        this.exitPrice = currentPrice
     }
 
-    fun exit(exitPrice: Double) {
+    private fun shouldStop(): Boolean {
         require(isOpen)
-        closeReason = CloseReason.EXIT
-        this.exitPrice = exitPrice
+        return exposure + profitLoss <= 0.0
     }
 
-    fun stop(exitPrice: Double) {
-        require(isOpen)
-        closeReason = CloseReason.STOP_LOSS
-        this.exitPrice = exitPrice
+    private fun stop() {
+        this.closeReason = CloseReason.STOP_LOSS
+        this.exitPrice = currentPrice
     }
 
-    val isOpen: Boolean
-        get() = closeReason == null
 }

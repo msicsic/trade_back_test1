@@ -1,67 +1,27 @@
 package org.msi.ftx1.business.backtest
 
-/** Manages the history of active and inactive trades during a backtest.  */
 class TradeHistory(
-    /** The simulated initial account balance.  */
-    var balance: Double,
-    /** The fee % charged by the exchange in each trade  */
-    private val feePerTrade: Double,
+    private val initialBalance: Double
 ) {
+    val balance get() = initialBalance + trades.sumOf { it.profitLoss }
     val trades: MutableList<TradeRecord> = mutableListOf()
-    var fees: Double = 0.0
+    val fees: Double get() = trades.sumOf { it.fees }
 
-    /** The maximum account equity value (balance + active trade value) reached.  */
-    var maxEquity = balance
-        private set
-
-    /** The maximum account drawdown reached.  */
-    var maxDrawDown = 0.0
-        private set
+    // TODO
+    val maxDrawDown get(): Double = initialBalance + trades.sumOf { it.drawDown }
 
     operator fun plusAssign(trade: TradeRecord) {
         require(trade.amount > 0.0)
         trades.add(trade)
-        fees += trade.entryPrice * trade.amount * feePerTrade
-        balance -= trade.entryPrice * trade.amount * (1.0 + feePerTrade)
     }
 
-    private val activeTrades: List<TradeRecord>
-        get() = trades.filter { it.isOpen }
+    val activeTrade: TradeRecord? get() = trades.firstOrNull { it.isOpen }
 
-    val activeTradeCount: Int
-        get() = activeTrades.size
-
-    fun exitActiveTrades(currentPrice: Double) {
-        activeTrades.forEach { trade ->
-            trade.exit(currentPrice)
-            fees += trade.amount * currentPrice * feePerTrade
-            balance += trade.amount * currentPrice * (1.0 - feePerTrade)
-        }
+    fun updateCurrentPrice(currentPrice: Double) {
+        activeTrade?.updateCurrentPrice(currentPrice)
     }
 
-    fun closeStoppedTrades(currentPrice: Double) {
-        activeTrades
-            .filter { it.shouldStop(currentPrice) }
-            .forEach { trade ->
-                trade.stop(currentPrice)
-                balance += trade.amount * currentPrice * (1.0 - feePerTrade)
-            }
+    fun exitActiveTrade() {
+        activeTrade?.exit()
     }
-
-    fun updateEquity(currentPrice: Double) {
-        val equity = balance + getCurrentInvestedValue(currentPrice)
-        if (equity > maxEquity) {
-            maxEquity = equity
-        }
-        val drawDown = (maxEquity - equity) / maxEquity
-        if (drawDown > maxDrawDown) {
-            maxDrawDown = drawDown
-        }
-    }
-
-    fun trailStops(currentPrice: Double) {
-        activeTrades.forEach { it.updateTrailingStop(currentPrice) }
-    }
-
-    private fun getCurrentInvestedValue(currentPrice: Double): Double = activeTrades.sumOf { it.amount * currentPrice }
 }

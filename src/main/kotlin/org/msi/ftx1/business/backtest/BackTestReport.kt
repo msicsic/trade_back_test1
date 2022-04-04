@@ -11,11 +11,8 @@ class BackTestReport(
     val tradeCount: Int
         get() = tradeHistory.trades.size
 
-    val pyramidingLimit: Int
-        get() = spec.pyramidingLimit
-
-    val betSize: Double
-        get() = spec.betSize
+    val exposure: Double
+        get() = spec.exposure
 
     val initialBalance: Double
         get() = spec.startingBalance
@@ -61,6 +58,34 @@ class BackTestReport(
         val percentageProfitLoss = 1 + profitLoss / (positionSize - abs(profitLoss))
         return percentageProfitLoss / maxDrawDown
     }
+
+    fun print() {
+        println("----------------------------------")
+        println("Finished backtest with ${tradeCount} trades")
+        println("----------------------------------")
+
+        // Input parameters
+        println(String.format("Account risk/trade : %.1f%%", 100.0 * exposure))
+        println("----------------------------------")
+
+        // Analysis
+        println(String.format("Profitability      : %.2f%%", 100.0 * profitability))
+        println(String.format("Buy-and-hold       : %.2f%%", 100.0 * buyAndHoldProfitability))
+        println(String.format("Vs buy-and-hold    : %.2f%%", 100.0 * vsBuyAndHold))
+        println(String.format("Total fees         : %.2f $", tradeHistory.fees))
+        println(String.format("Win rate           : %.2f%%", 100.0 * winRate))
+        println(String.format("Max drawdown       : %.2f%%", 100.0 * maxDrawDown))
+        println(String.format("Risk/reward ratio  : %.2f", riskReward))
+        println(String.format("Sortino ratio      : %.2f", sortinoRatio))
+        println("----------------------------------")
+
+        // Financial result
+        println(String.format("Start balance      : $%,.2f", initialBalance))
+        println(String.format("Profit/loss        : $%,.2f", profitLoss))
+        println(String.format("Final balance      : $%,.2f", finalBalance))
+        println("----------------------------------")
+    }
+
 }
 
 /**
