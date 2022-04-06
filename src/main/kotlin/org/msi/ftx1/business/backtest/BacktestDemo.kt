@@ -6,12 +6,13 @@ import org.msi.ftx1.business.TimeFrame
 import org.msi.ftx1.business.indicator.*
 import org.msi.ftx1.business.signal.*
 import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 /** A sample back tester and strategy implementation. */
 class BackTestDemo(
     val symbol: String,
-    val startTime: LocalDateTime,
-    val endTime: LocalDateTime,
+    val startTime: ZonedDateTime,
+    val endTime: ZonedDateTime,
     val provider: BarChartProvider
 ) {
 
@@ -44,32 +45,17 @@ class BackTestDemo(
         report.print()
     }
 
-    private fun makeStrategy(seriesManager: BarChart): Strategy {
+    private fun makeStrategy(chart: BarChart): Strategy {
 
         // The timeframes our indicators will use.
-        val h1 = seriesManager.h1 // 1 hour
-        val h4 = seriesManager.h4 // 4 hours
-
-        // Creates the 1-hour indicators.
-        val close = h1.closePrice
-        val high = h1.highPrice
-        val low = h1.lowPrice
-        val h1ema4 = close.ema(4)
-        val h1ema8 = close.ema(8).withLog("ema8")
-        val h1sma20 = close.sma(20)
-        val h1ema30 = close.ema(30)
-
-        // Creates the 4-hour indicators.
-        val h4price: Indicator = h4.closePrice
-        val h4ema4: Indicator = h4price.ema(4)
-        val h4ema8: Indicator = h4price.ema(8)
-        val h4ema15: Indicator = h4price.ema(15)
+        val close = chart.closePrice.withLog("close")
+        val ema8 = ema(close, 8).withLog("EMA8")
 
         return Strategy(
             // Identifies when to enter a trade.
-            entrySignal = close crossedOver h1ema8,
+            entrySignal = close crossedOver ema8,
             // Identifies when to exit active trades.
-            exitSignal = close crossedUnder h1ema8,
+            exitSignal = close crossedUnder ema8,
         )
     }
 

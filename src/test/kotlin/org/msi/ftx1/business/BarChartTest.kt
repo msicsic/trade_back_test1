@@ -2,15 +2,52 @@ package org.msi.ftx1.business
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
-import java.time.ZoneOffset
+import java.lang.Double.NaN
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 internal class BarChartTest {
 
     @Test
+    fun `first index should contain the most recent bar`() {
+        val startTime = ZonedDateTime.of(2022, 3, 15, 20, 30, 50, 0, ZoneId.systemDefault())
+
+        val chart = ChartHelper(startTime, TimeFrame.MIN_5)
+            .bar(10.0) // 2
+            .bar(20.0) // 1
+            .bar(30.0) // 0
+            .chart
+
+        assertEquals(startTime.seconds, chart[2].openTime)
+        assertEquals(startTime.seconds + TimeFrame.MIN_5.seconds * 1, chart[1].openTime)
+        assertEquals(startTime.seconds + TimeFrame.MIN_5.seconds * 2, chart[0].openTime)
+
+        assertEquals(chart[0], chart.latest)
+        assertEquals(chart[2], chart.oldest)
+
+        assertEquals(30.0, chart[0].close)
+        assertEquals(20.0, chart[1].close)
+        assertEquals(10.0, chart[2].close)
+    }
+
+    @Test
+    fun `index greater than the number of bar should return a undefined bar with a correct time`() {
+        val startTime = ZonedDateTime.of(2022, 3, 15, 20, 30, 50, 0, ZoneId.systemDefault())
+
+        val chart = ChartHelper(startTime, TimeFrame.MIN_5)
+            .bar(10.0)
+            .bar(20.0)
+            .bar(30.0)
+            .chart
+
+        assertEquals(NaN, chart[3].close)
+        assertEquals(startTime.seconds - TimeFrame.MIN_5.seconds * 1, chart[3].openTime)
+    }
+
+    @Test
     fun downSample() {
-        val time = LocalDateTime.of(2022, 3, 15, 18, 35, 22)
-        val timeSeconds = time.toEpochSecond(ZoneOffset.UTC)
+        val time = ZonedDateTime.of(2022, 3, 15, 18, 35, 22, 0, ZoneId.systemDefault())
+        val timeSeconds = time.seconds
 
         val interval = TimeFrame.MIN_5
         val chart = BarChart(
@@ -86,5 +123,16 @@ internal class BarChartTest {
         assertEquals(10.0, bar2.volume)
         assertEquals(timeSeconds + TimeFrame.MIN_15.seconds, bar2.openTime)
         assertEquals(TimeFrame.MIN_15, bar2.interval)
+    }
+}
+
+class ChartHelper(startTime: ZonedDateTime, interval: TimeFrame) {
+    val chart = BarChart("TEST", interval, startTime, mutableListOf())
+    var currentTime = startTime.seconds
+
+    fun bar(close: Double): ChartHelper {
+        chart += Bar(chart.interval, currentTime, close, 1.0)
+        currentTime += chart.interval.seconds
+        return this
     }
 }

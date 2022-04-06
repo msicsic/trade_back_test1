@@ -6,13 +6,14 @@ import org.msi.ftx1.business.TimeFrame
 import org.msi.ftx1.business.indicator.Indicator
 import org.msi.ftx1.business.signal.Strategy
 import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 /** Specifies the configuration for a back test run.  */
 data class BackTestSpec(
     val symbol: String,
     val provider: BarChartProvider,
-    val startTime: LocalDateTime,
-    val endTime: LocalDateTime,
+    val startTime: ZonedDateTime,
+    val endTime: ZonedDateTime,
 
     val tradeType: TradeType,
     /** The base time frame at which the back tester runs. This is typically the time frame of the fastest indicator. */

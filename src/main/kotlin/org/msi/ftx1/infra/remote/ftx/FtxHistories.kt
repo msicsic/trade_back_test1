@@ -1,7 +1,7 @@
 package org.msi.ftx1.infra.remote.ftx
 
 import java.time.LocalDateTime
-import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 data class FtxHistories(
@@ -17,8 +17,7 @@ data class FtxHistory(
     val low: Double,
     val volume: Double
 ) {
-    val timeAsDate get(): LocalDateTime = LocalDateTime.parse(startTime, dateParserHistory)
-    val timeAsSeconds get(): Long = timeAsDate.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() / 1000
+    val timeAsSeconds get(): Long = LocalDateTime.parse(startTime, dateParserHistory).toInstant(ZoneOffset.UTC).toEpochMilli() / 1000
 
     companion object {
         private val dateParserHistory = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'+00:00'")

@@ -3,6 +3,7 @@ package org.msi.ftx1.infra
 import org.msi.ftx1.business.*
 import org.msi.ftx1.business.backtest.BackTestDemo
 import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 fun main() {
     Config().configure().apply {
@@ -28,7 +29,7 @@ class Main(
 //            endTime = LocalDateTime.now()
 //        )
 //
-        val demo = BackTestDemo("BTC-PERP", LocalDateTime.now().minusDays(5), LocalDateTime.now(), barChartProvider)
+        val demo = BackTestDemo("BTC-PERP", ZonedDateTime.now().minusDays(5), ZonedDateTime.now(), barChartProvider)
         demo.start()
 
 //

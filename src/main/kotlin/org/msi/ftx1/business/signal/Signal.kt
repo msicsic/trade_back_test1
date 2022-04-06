@@ -47,41 +47,38 @@ operator fun Signal.not(): Signal = inverted()
 // ===========================================================
 
 infix fun Indicator.isOver(otherIndicator: Indicator): Signal =
-    Signal { index -> (getValue(index) ?: return@Signal false) > (otherIndicator.getValue(index) ?: return@Signal false) }
+    Signal { index -> get(index)> (otherIndicator.get(index) ?: return@Signal false) }
 
 infix fun Indicator.isOver(fixedValue: Double): Signal =
-    Signal { index -> (getValue(index) ?: return@Signal false) > fixedValue }
+    Signal { index -> get(index)  > fixedValue }
 
 val Indicator.isPositive: Signal
-    get() = Signal { index -> (getValue(index) ?: return@Signal false) > 0.0 }
+    get() = Signal { index -> get(index)  > 0.0 }
 
 val Indicator.isNegative: Signal
-    get() = Signal { index -> (getValue(index) ?: return@Signal false) < 0.0 }
+    get() = Signal { index -> get(index)  < 0.0 }
 
 infix fun Indicator.isUnder(otherIndicator: Indicator): Signal =
-    Signal { index -> (getValue(index) ?: return@Signal false) < (otherIndicator.getValue(index) ?: return@Signal false) }
+    Signal { index -> get(index) < (otherIndicator.get(index) ?: return@Signal false) }
 
 infix fun Indicator.isUnder(fixedValue: Double): Signal =
-    Signal { index -> (getValue(index) ?: return@Signal false) < fixedValue }
+    Signal { index -> get(index) < fixedValue }
 
 infix fun Indicator.crossedOver(otherIndicator: Indicator): Signal = Signal { index ->
-    ((getValue(index) ?: return@Signal false) > (otherIndicator.getValue(index) ?: return@Signal false)
-            && (getValue(index + 1) ?: return@Signal false) <= (otherIndicator.getValue(index + 1)
-        ?: return@Signal false))
+    (get(index)  > otherIndicator.get(index)
+            && get(index + 1) <= otherIndicator.get(index + 1))
 }
 
 infix fun Indicator.crossedOver(fixedValue: Double): Signal = Signal { index ->
-    ((getValue(index) ?: return@Signal false) > fixedValue
-            && (getValue(index + 1) ?: return@Signal false) <= fixedValue)
+    (get(index) > fixedValue
+            && get(index + 1) <= fixedValue)
 }
 
 infix fun Indicator.crossedUnder(otherIndicator: Indicator): Signal = Signal { index ->
-    ((getValue(index) ?: return@Signal false) < (otherIndicator.getValue(index) ?: return@Signal false)
-            && (getValue(index + 1) ?: return@Signal false) >= (otherIndicator.getValue(index + 1)
-        ?: return@Signal false))
+    (get(index) < otherIndicator.get(index)
+            && get(index + 1) >= otherIndicator.get(index + 1))
 }
 
 infix fun Indicator.crossedUnder(fixedValue: Double): Signal = Signal { index ->
-    ((getValue(index) ?: return@Signal false) < fixedValue
-            && (getValue(index + 1) ?: return@Signal false) >= fixedValue)
+    (get(index)< fixedValue && get(index + 1) >= fixedValue)
 }

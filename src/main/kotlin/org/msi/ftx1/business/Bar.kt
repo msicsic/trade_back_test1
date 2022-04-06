@@ -9,10 +9,11 @@ data class Bar(
     var close: Double,
     var high: Double,
     var low: Double,
-    var volume: Double,
-    val valid: Boolean = true
+    var volume: Double
 ) {
     val closeTime = openTime + interval.seconds
+
+    val undefined get() = open.isNaN() || close.isNaN() || high.isNaN() || low.isNaN() || volume.isNaN()
 
     constructor(interval: TimeFrame, timeSeconds: Long) : this(
         openTime = timeSeconds,
@@ -22,12 +23,21 @@ data class Bar(
         high = NaN,
         low = NaN,
         volume = NaN,
-        valid = false
+    )
+
+    constructor(interval: TimeFrame, timeSeconds: Long, close: Double, volume: Double) : this(
+        openTime = timeSeconds,
+        interval = interval,
+        open = close,
+        close = close,
+        high = close,
+        low = close,
+        volume = volume,
     )
 
     constructor(
         timeFrame: TimeFrame,
-        otherBar: Bar,
+        otherBar: Bar
     ) : this(
         interval = timeFrame,
         openTime = otherBar.openTime,
@@ -39,25 +49,20 @@ data class Bar(
     )
 
     operator fun plusAssign(otherBar: Bar) {
-        close = otherBar.close
-        volume += otherBar.volume
-        if (otherBar.high > high) {
-            high = otherBar.high
-        }
-        if (otherBar.low < low) {
-            low = otherBar.low
-        }
+        if (otherBar.undefined) throw java.lang.IllegalArgumentException("Cannot merge an undefined Bar")
+        volume = if (volume.isNaN()) otherBar.volume else volume + otherBar.volume
+        this += otherBar.close
     }
 
     operator fun plusAssign(price: Double) {
         close = price
-        if (open == 0.0) {
+        if (open.isNaN()) {
             open = price
         }
-        if (price > high) {
+        if (price > high || high.isNaN()) {
             high = price
         }
-        if (price < low) {
+        if (price < low || low.isNaN()) {
             low = price
         }
     }

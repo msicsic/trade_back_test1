@@ -7,19 +7,20 @@ import org.msi.ftx1.business.*
 import org.msi.ftx1.infra.remote.ftx.FtxClient
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.ZonedDateTime
 
 class BarChartAdapterFTX(
     private val client: FtxClient
 ) : BarChartProvider {
 
-    override fun getTrades(symbol: String, startTime: LocalDateTime, endTime: LocalDateTime) = TradeChart(
+    override fun getTrades(symbol: String, startTime: ZonedDateTime, endTime: ZonedDateTime) = TradeChart(
         symbol = symbol,
-        startTimeSeconds = startTime.epochSecond,
-        endTimeSeconds = endTime.epochSecond,
+        startTimeSeconds = startTime.seconds,
+        endTimeSeconds = endTime.seconds,
         data = client.getTrades(
             symbol = symbol,
-            startTimeSeconds = startTime.epochSecond,
-            endTimeSeconds = endTime.epochSecond
+            startTimeSeconds = startTime.seconds,
+            endTimeSeconds = endTime.seconds
         ).map {
             Trade(it.timeAsSeconds, it.price, it.size)
         }
@@ -28,8 +29,8 @@ class BarChartAdapterFTX(
     override fun processCharts(
         symbols: List<String>,
         interval: TimeFrame,
-        startTime: LocalDateTime,
-        endTime: LocalDateTime,
+        startTime: ZonedDateTime,
+        endTime: ZonedDateTime,
         candleChartConsumer: (BarChart) -> Unit
     ): Unit = runBlocking(Dispatchers.IO) {
         val symbolsChannel = produceSymbols(symbols)
@@ -40,8 +41,8 @@ class BarChartAdapterFTX(
     override fun getCandleChart(
         symbol: String,
         interval: TimeFrame,
-        startTime: LocalDateTime,
-        endTime: LocalDateTime
+        startTime: ZonedDateTime,
+        endTime: ZonedDateTime
     ) = BarChart(
         symbol = symbol,
         interval = interval,
@@ -49,8 +50,8 @@ class BarChartAdapterFTX(
         _data = client.getHistory(
             symbol = symbol,
             resolution = interval.seconds,
-            startSeconds = startTime.epochSecond,
-            endSeconds = endTime.epochSecond
+            startSeconds = startTime.seconds,
+            endSeconds = endTime.seconds
         ).map {
             Bar(
                 interval = interval,
@@ -60,7 +61,6 @@ class BarChartAdapterFTX(
                 high = it.high,
                 low = it.low,
                 volume = it.volume,
-                valid = true
             )
         }.toMutableList()
     )
@@ -77,8 +77,8 @@ class BarChartAdapterFTX(
     private fun CoroutineScope.produceCharts(
         symbolsChannel: ReceiveChannel<String>,
         interval: TimeFrame,
-        startTime: LocalDateTime,
-        endTime: LocalDateTime,
+        startTime: ZonedDateTime,
+        endTime: ZonedDateTime,
         nbCoroutines: Int
     ): ReceiveChannel<BarChart> {
         val channelOut = Channel<BarChart>()
@@ -112,5 +112,3 @@ class BarChartAdapterFTX(
     }
 
 }
-
-private val LocalDateTime.epochSecond: Long get() = atZone(ZoneId.systemDefault()).toInstant().epochSecond

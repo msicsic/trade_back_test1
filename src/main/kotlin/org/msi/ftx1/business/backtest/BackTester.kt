@@ -61,9 +61,9 @@ object BackTester {
         }
 
         // Closes trades that remain open in the end.
-        val lastPrice: Double = runTimeSeries.latest?.close ?: 0.0
+        val lastPrice: Double = runTimeSeries.latest?.close ?: Double.NaN
         tradeHistory.exitActiveTrade()
-        val startPrice: Double = runTimeSeries.oldest?.open ?: 0.0
+        val startPrice: Double = runTimeSeries.oldest.open
 
         return BackTestReport(
             spec = spec,
