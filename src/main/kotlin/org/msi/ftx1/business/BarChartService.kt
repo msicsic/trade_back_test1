@@ -7,7 +7,7 @@ class BarChartService {
     }
 
     fun currentVolatility(chart: BarChart) = chart.run {
-        Percent((max - min) / chart.latest.close)
+        Percent((max - min) / (chart.latest?.close ?: (max - min)))
     }
 
 }

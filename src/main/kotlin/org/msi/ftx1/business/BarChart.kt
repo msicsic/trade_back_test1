@@ -23,8 +23,8 @@ data class BarChart(
     val min get(): Double = data.minOf { it.low }
     val max get(): Double = data.maxOf { it.high }
     val mean get(): Double = data.sumOf { it.close } / data.size
-    val latest get(): Bar = data.getOrNull(data.size-1) ?: Bar(interval, startTime.toEpochSecond(ZoneOffset.UTC))
-    val oldest get(): Bar = data.getOrNull(0) ?: Bar(interval, startTime.toEpochSecond(ZoneOffset.UTC))
+    val latest get(): Bar = data[data.size-1]
+    val oldest get(): Bar = data[0]
 
     fun getDownSampledChart(timeframe: TimeFrame): BarChart {
         return chartsCache.computeIfAbsent(timeframe) { timeFrame: TimeFrame ->
@@ -42,9 +42,8 @@ data class BarChart(
 
     /** Merges the bar from a lower time frame into this time series  */
     fun addCandleStick(candle: Bar) {
-        val currentBar = getCurrentBar(candle.openTime)
         // Adds a new bar if the open time is after the latest bar
-        when (currentBar) {
+        when (val currentBar = getCurrentBar(candle.openTime)) {
             null -> baseBarChart._data.add(Bar(interval, candle))
             else -> currentBar += candle
         }
@@ -72,7 +71,7 @@ data class BarChart(
 
     private fun computeBar(interval: TimeFrame, chunk: List<Bar>) = Bar(
         openTime = chunk.first().openTime,
-        volume = chunk.sumOf { it.volume.toDouble() }.toDouble(),
+        volume = chunk.sumOf { it.volume },
         interval = interval,
         open = chunk.first().open,
         close = chunk.last().close,

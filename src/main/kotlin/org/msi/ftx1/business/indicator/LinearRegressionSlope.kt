@@ -12,7 +12,7 @@ fun Indicator.linearRegressionSlope(length: Int = 20): Indicator {
         for (i in index until index + length) {
             // index grows in reverse direction so "i" is negative
             sumX -= i
-            sumY += this[i]
+            sumY += this[i] ?: return@Indicator null
         }
         val xBar = sumX / length
         val yBar = sumY / length
@@ -23,7 +23,7 @@ fun Indicator.linearRegressionSlope(length: Int = 20): Indicator {
         for (i in index until index + length) {
             // index grows in reverse direction so "i" is negative
             val dX = -i - xBar
-            val dY = this[i] - yBar
+            val dY = (this[i] ?: return@Indicator null) - yBar
             xxBar += dX * dX
             xyBar += dX * dY
         }

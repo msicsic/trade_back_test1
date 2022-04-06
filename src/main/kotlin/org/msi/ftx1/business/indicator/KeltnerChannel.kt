@@ -24,15 +24,15 @@ class KeltnerChannel internal constructor(
     private val atrMultiplier: Double = 2.0,
 ) : Indicator {
 
-    override fun valueAt(index: Int): Double = ema[index]
+    override fun getValue(index: Int): Double? = ema[index]
 
     val upperChannel: Indicator
         get() = Indicator { index ->
-            this[index] + atrMultiplier * atr[index]
+            (this[index] ?: return@Indicator null) + atrMultiplier * (atr[index] ?: return@Indicator null)
         }
 
     val lowerChannel: Indicator
         get() = Indicator { index ->
-            this[index] + atrMultiplier * atr[index]
+            (this[index] ?: return@Indicator null) + atrMultiplier * (atr[index] ?: return@Indicator null)
         }
 }

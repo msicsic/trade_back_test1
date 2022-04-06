@@ -8,10 +8,6 @@ class Strategy(
     private val exitSignal: Signal,
 ) {
 
-    /** Computes the current trading signal. */
-    val signal: SignalType
-        get() = get(0)
-
     /**
      * Computes the trading signal at the specified timeseries bar index.
      */

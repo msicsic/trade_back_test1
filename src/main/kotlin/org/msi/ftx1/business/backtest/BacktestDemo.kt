@@ -51,12 +51,13 @@ class BackTestDemo(
         val h4 = seriesManager.h4 // 4 hours
 
         // Creates the 1-hour indicators.
-        val h1price = h1.closePrice
-        val h1cci = h1.cci(20)
-        val h1ema4 = h1price.ema(4)
-        val h1ema8 = h1price.ema(8)
-        val h1sma20 = h1price.sma(20)
-        val h1ema30 = h1price.ema(30)
+        val close = h1.closePrice
+        val high = h1.highPrice
+        val low = h1.lowPrice
+        val h1ema4 = close.ema(4)
+        val h1ema8 = close.ema(8).withLog("ema8")
+        val h1sma20 = close.sma(20)
+        val h1ema30 = close.ema(30)
 
         // Creates the 4-hour indicators.
         val h4price: Indicator = h4.closePrice
@@ -66,9 +67,9 @@ class BackTestDemo(
 
         return Strategy(
             // Identifies when to enter a trade.
-            entrySignal = h1price crossedOver h1ema8,
+            entrySignal = close crossedOver h1ema8,
             // Identifies when to exit active trades.
-            exitSignal = h1price crossedUnder h1ema8,
+            exitSignal = close crossedUnder h1ema8,
         )
     }
 

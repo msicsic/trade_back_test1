@@ -6,8 +6,8 @@ fun Indicator.rsi(length: Int = 14): Indicator {
     val lossMma = lossIndicator().modifiedMovingAverage(length)
 
     return Indicator { index ->
-        val avgGain = gainMma.valueAt(index)
-        val avgLoss = lossMma.valueAt(index)
+        val avgGain = gainMma.getValue(index) ?: return@Indicator null
+        val avgLoss = lossMma.getValue(index) ?: return@Indicator null
         if (avgLoss == 0.0) {
             return@Indicator if (avgGain == 0.0) 0.0 else 100.0
         }
@@ -19,10 +19,10 @@ fun Indicator.rsi(length: Int = 14): Indicator {
 
 private fun Indicator.gainIndicator(): Indicator =
     Indicator { index ->
-        (this[index] - this[index + 1]).coerceAtLeast(.0)
+        ((this[index] ?: return@Indicator null) - (this[index + 1] ?: return@Indicator null)).coerceAtLeast(.0)
     }
 
 private fun Indicator.lossIndicator(): Indicator =
     Indicator { index ->
-        (this[index + 1] - this[index]).coerceAtLeast(.0)
+        ((this[index + 1] ?: return@Indicator null) - (this[index] ?: return@Indicator null)).coerceAtLeast(.0)
     }

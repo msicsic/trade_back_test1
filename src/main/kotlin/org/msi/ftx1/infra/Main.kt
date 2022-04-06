@@ -63,6 +63,14 @@ class Main(
 //        System.err.println("result : " + results.sortedByDescending { it.second })
 //        System.err.println("DONE in $time ms")
 
+        // TODO: cross signal avec close ou low/high
+        // TODO: signal de confirmation
+        // TODO: signal de rebond sur EMA
+        // TODO: BDD / UT sur les calculs et indicateurs / signaux
+
+        // TODO: calcul pivots
+        // TODO: algo pour trouver les EMA/SMA/WMA/WVAP/Channels... qui passent par le max de pivots dans un intervale de temps
+
         // TODO: coRoutines pour chargement parallele des tranches de 1500 candles
 
         // TODO: volatility graph (absolute volat high-low for each candle) => pour repérer les squizes

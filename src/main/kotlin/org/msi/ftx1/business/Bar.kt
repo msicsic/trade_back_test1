@@ -1,5 +1,7 @@
 package org.msi.ftx1.business
 
+import kotlin.Double.Companion.NaN
+
 data class Bar(
     val interval: TimeFrame,
     val openTime: Long,
@@ -15,11 +17,11 @@ data class Bar(
     constructor(interval: TimeFrame, timeSeconds: Long) : this(
         openTime = timeSeconds,
         interval = interval,
-        open = 0.0,
-        close = 0.0,
-        high = 0.0,
-        low = 0.0,
-        volume = 0.0,
+        open = NaN,
+        close = NaN,
+        high = NaN,
+        low = NaN,
+        volume = NaN,
         valid = false
     )
 

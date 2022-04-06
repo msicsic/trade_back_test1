@@ -1,6 +1,8 @@
 package org.msi.ftx1.business.indicator
 
 import org.msi.ftx1.business.BarChart
+import org.msi.ftx1.business.backtest.currentTime
+import java.time.Instant
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -8,30 +10,40 @@ import kotlin.math.max
 // Basic price indicators
 // ===========================================================
 
+// TODO: use NaN instead of null
+// TODO: UT for EMA (compare with tradingView)
+
 val BarChart.openPrice: Indicator
-    get() = Indicator { index -> this[index].open }
+    get() = Indicator { index -> this[index]?.open }
 
 val BarChart.highPrice: Indicator
-    get() = Indicator { index -> this[index].high }
+    get() = Indicator { index -> this[index]?.high }
 
 val BarChart.lowPrice: Indicator
-    get() = Indicator { index -> this[index].low }
+    get() = Indicator { index -> this[index]?.low }
 
 val BarChart.closePrice: Indicator
-    get() = Indicator { index -> this[index].close }
+    get() = Indicator { index -> this[index]?.close }
 
 val BarChart.volume: Indicator
-    get() = Indicator { index -> this[index].volume }
+    get() = Indicator { index -> this[index]?.volume }
 
 val BarChart.hlc3Price: Indicator
     get() = typicalPrice
 
 val BarChart.typicalPrice: Indicator
     get() = Indicator { index ->
-        with(this[index]) {
-            (high + low + close) / 3
+        this[index]?.let {
+            (it.high + it.low + it.close) / 3
         }
     }
+
+fun Indicator.withLog(name: String) = Indicator { index ->
+    val res = this[index]
+    if (index == 0) { System.err.println("Indicator $name, index: $index, time: ${Instant.ofEpochMilli(currentTime)}, value : $res") }
+    res
+}
+
 
 // ===========================================================
 // Simple indicators
@@ -45,7 +57,7 @@ val BarChart.typicalPrice: Indicator
  */
 fun Indicator.lowestValue(length: Int = 20): Indicator =
     Indicator { index ->
-        (index until index + length).minOf { i -> this[i] }
+        (index until index + length).mapNotNull { this[it] }.minOrNull()
     }
 
 /**
@@ -56,7 +68,7 @@ fun Indicator.lowestValue(length: Int = 20): Indicator =
  */
 fun Indicator.highestValue(length: Int = 20): Indicator =
     Indicator { index ->
-        (index until index + length).maxOf { i -> this[i] }
+        (index until index + length).mapNotNull { this[it] }.maxOrNull()
     }
 
 /**
@@ -67,7 +79,7 @@ fun Indicator.highestValue(length: Int = 20): Indicator =
  */
 fun Indicator.simpleMovingAverage(length: Int = 20) =
     Indicator { index ->
-        (index until index + length).map { i -> this[i] }.average()
+        (index until index + length).mapNotNull { i -> this[i] }.average()
     }
 
 /** Alias to Indicator.simpleMovingAverage(length). */
@@ -83,16 +95,14 @@ fun Indicator.exponentialMovingAverage(length: Int = 20): Indicator {
     val sma = this.simpleMovingAverage(length)
     val multiplier = 2.0 / (length.toDouble() + 1.0)
 
-    fun valueAt(index: Int, relevantBars: Int): Double {
+    fun valueAt(index: Int, relevantBars: Int): Double? {
         if (relevantBars == 0) {
             return sma[index]
         }
+        val smaAtIndex = sma[index] ?: return null
         // TODO: Implement memoization of the previous value (however the index moves with every new bar)
-        val previousValue = valueAt(index = index + 1, relevantBars = relevantBars - 1)
-        val value = (sma[index] - previousValue) * multiplier + previousValue
-        return if (value.isNaN()) {
-            sma[index]
-        } else value
+        val previousValue = valueAt(index = index + 1, relevantBars = relevantBars - 1) ?: return null
+        return (smaAtIndex - previousValue) * multiplier + previousValue
     }
 
     return Indicator { index ->
@@ -113,16 +123,14 @@ fun Indicator.modifiedMovingAverage(length: Int = 14): Indicator {
     val sma = this.simpleMovingAverage(length)
     val multiplier = 1.0 / length.toDouble()
 
-    fun valueAt(index: Int, relevantBars: Int): Double {
+    fun valueAt(index: Int, relevantBars: Int): Double? {
         if (relevantBars == 0) {
             return sma[index]
         }
+        val smaAtIndex = sma[index] ?: return null
         // TODO: Implement memoization of the previous value (however the index moves with every new bar)
-        val previousValue = valueAt(index = index + 1, relevantBars = relevantBars - 1)
-        val value = (sma[index] - previousValue) * multiplier + previousValue
-        return if (value.isNaN()) {
-            sma[index]
-        } else value
+        val previousValue = valueAt(index = index + 1, relevantBars = relevantBars - 1) ?: return null
+        return (smaAtIndex - previousValue) * multiplier + previousValue
     }
 
     return Indicator { index ->
@@ -141,28 +149,15 @@ fun BarChart.averageTrueRange(length: Int = 14): Indicator {
 /** True Range indicator. */
 fun BarChart.trueRange(): Indicator =
     Indicator { index ->
-        val bar = this[index]
+        val bar = this[index] ?: return@Indicator null
         val high = bar.high
         val low = bar.low
-        val close = this[index + 1].close
+        val close = this[index + 1]?.close ?: return@Indicator null
         val ts = abs(high - low)
         val ys = abs(high - close)
         val yst = abs(close - low)
         return@Indicator max(ts, max(ys, yst))
     }
-
-/** The Commodity Channel Index (CCI) indicator. */
-fun BarChart.cci(length: Int = 20): Indicator {
-    val typicalPrice = typicalPrice
-    val priceSma = typicalPrice.simpleMovingAverage(length)
-    val meanDeviation = typicalPrice.meanDeviation(length)
-
-    return Indicator { index ->
-        return@Indicator (typicalPrice[index] - priceSma[index]) / (meanDeviation[index] * CCI_FACTOR)
-    }
-}
-
-private const val CCI_FACTOR = 0.015
 
 /**
  * The Stochastic %K price indicator.
@@ -179,12 +174,13 @@ fun BarChart.stochastic(length: Int = 20): Indicator {
     val minPrice = lowPrice.lowestValue(length)
 
     return Indicator { index ->
-        val price = closePrice[index]
-        val highestPrice = maxPrice[index]
+        val price = closePrice[index] ?: return@Indicator null
+        val highestPrice = maxPrice[index] ?: return@Indicator null
         if (highestPrice - price == 0.0) {
             100.0
         } else {
-            (100.0 * (price - minPrice[index]) / (highestPrice - price))
+            val minPrice = minPrice[index] ?: return@Indicator null
+            (100.0 * (price - minPrice) / (highestPrice - price))
                 .coerceAtMost(100.0)
         }
     }
@@ -197,7 +193,10 @@ fun Indicator.stochasticRsi(length: Int = 14): Indicator {
     val minRsi = rsi.lowestValue(length = length)
 
     return Indicator { index ->
-        (rsi[index] - minRsi[index]) / (maxRsi[index] - minRsi[index])
+        val min = minRsi[index] ?: return@Indicator null
+        val max = maxRsi[index] ?: return@Indicator null
+        val rsi = rsi[index] ?: return@Indicator null
+        (rsi - min) / (max - min)
     }
 }
 
@@ -208,9 +207,9 @@ fun Indicator.stochasticRsi(length: Int = 14): Indicator {
 fun Indicator.meanDeviation(length: Int = 20): Indicator {
     val sma = this.simpleMovingAverage(length)
     return Indicator { index ->
-        val average = sma[index]
+        val average = sma[index] ?: return@Indicator null
         val sumDeviations = (index until index + length)
-            .sumOf { i -> abs(this[i] - average) }
+            .sumOf { i -> abs((this[i] ?: return@Indicator null) - average) }
         return@Indicator sumDeviations / length
     }
 }
@@ -225,7 +224,7 @@ fun BarChart.volatilityStop(length: Int = 22, multiplier: Double = 2.0): Indicat
     val price = this.lowPrice.lowestValue(length = length)
 
     return Indicator { index ->
-        price[index] - atr[index] * multiplier
+        (price[index] ?: return@Indicator null) - (atr[index] ?: return@Indicator null) * multiplier
     }
 }
 
@@ -235,6 +234,6 @@ fun BarChart.chandelierStop(length: Int = 10, atrDistance: Double = 3.0): Indica
     val minPrice = highPrice.highestValue(length)
 
     return Indicator { index ->
-        minPrice[index] - atr[index] * atrDistance
+        (minPrice[index]?: return@Indicator null) - (atr[index]?: return@Indicator null) * atrDistance
     }
 }
