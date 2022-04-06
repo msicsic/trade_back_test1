@@ -10,17 +10,15 @@ internal class BarChartTest {
 
     @Test
     fun `first index should contain the most recent bar`() {
-        val startTime = ZonedDateTime.of(2022, 3, 15, 20, 30, 50, 0, ZoneId.systemDefault())
-
-        val chart = ChartHelper(startTime, TimeFrame.MIN_5)
+        val chart = ChartHelper(TimeFrame.MIN_5)
             .bar(10.0) // 2
             .bar(20.0) // 1
             .bar(30.0) // 0
             .chart
 
-        assertEquals(startTime.seconds, chart[2].openTime)
-        assertEquals(startTime.seconds + TimeFrame.MIN_5.seconds * 1, chart[1].openTime)
-        assertEquals(startTime.seconds + TimeFrame.MIN_5.seconds * 2, chart[0].openTime)
+        assertEquals(chart.startTime.seconds, chart[2].openTime)
+        assertEquals(chart.startTime.seconds + TimeFrame.MIN_5.seconds * 1, chart[1].openTime)
+        assertEquals(chart.startTime.seconds + TimeFrame.MIN_5.seconds * 2, chart[0].openTime)
 
         assertEquals(chart[0], chart.latest)
         assertEquals(chart[2], chart.oldest)
@@ -32,16 +30,14 @@ internal class BarChartTest {
 
     @Test
     fun `index greater than the number of bar should return a undefined bar with a correct time`() {
-        val startTime = ZonedDateTime.of(2022, 3, 15, 20, 30, 50, 0, ZoneId.systemDefault())
-
-        val chart = ChartHelper(startTime, TimeFrame.MIN_5)
+        val chart = ChartHelper(TimeFrame.MIN_5)
             .bar(10.0)
             .bar(20.0)
             .bar(30.0)
             .chart
 
         assertEquals(NaN, chart[3].close)
-        assertEquals(startTime.seconds - TimeFrame.MIN_5.seconds * 1, chart[3].openTime)
+        assertEquals(chart.startTime.seconds - TimeFrame.MIN_5.seconds * 1, chart[3].openTime)
     }
 
     @Test
@@ -126,12 +122,18 @@ internal class BarChartTest {
     }
 }
 
-class ChartHelper(startTime: ZonedDateTime, interval: TimeFrame) {
+class ChartHelper(val interval: TimeFrame, val startTime: ZonedDateTime = ZonedDateTime.of(2022, 3, 15, 20, 30, 50, 0, ZoneId.systemDefault())) {
     val chart = BarChart("TEST", interval, startTime, mutableListOf())
     var currentTime = startTime.seconds
 
     fun bar(close: Double): ChartHelper {
         chart += Bar(chart.interval, currentTime, close, 1.0)
+        currentTime += chart.interval.seconds
+        return this
+    }
+
+    fun bar(open: Double, close: Double = open, high: Double = open, low: Double = open): ChartHelper {
+        chart += Bar(chart.interval, currentTime, open, close, high, low, 1.0)
         currentTime += chart.interval.seconds
         return this
     }
