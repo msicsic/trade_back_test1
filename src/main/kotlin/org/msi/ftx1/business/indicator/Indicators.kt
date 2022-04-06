@@ -40,7 +40,7 @@ fun Indicator.withLog(name: String) = DecoratorIndicator(this) { index, value ->
  *    val support = h1.closePrice.lowestValue(length = 20)
  */
 fun Indicator.lowestValue(length: Int = 20) = simpleIndicator { index ->
-    (index until index + length).minOf { this[it] }
+    (index until index + length).filter { !this[it].isNaN() }.minOf { this[it] }
 }
 
 /**
@@ -50,7 +50,7 @@ fun Indicator.lowestValue(length: Int = 20) = simpleIndicator { index ->
  *    val resistance = h1.closePrice.highestValue(length = 20)
  */
 fun Indicator.highestValue(length: Int = 20) = SimpleIndicator(this) { index ->
-    (index until index + length).maxOf { this[it] }
+    (index until index + length).filter { !this[it].isNaN() }.maxOf { this[it] }
 }
 
 /**
@@ -69,7 +69,7 @@ fun sma(indicator: Indicator, length: Int = 20) = SimpleIndicator(indicator) { i
  * Usage:
  *    val h1ema30 = h1.closePrice.exponentialMovingAverage(length = 30);
  */
-fun ema(indicator: Indicator, length: Int = 20): Indicator = object: AbstractIndicator(indicator) {
+fun ema(indicator: Indicator, length: Int = 20): Indicator = object : AbstractIndicator(indicator) {
     val sma = sma(indicator, length)
     val multiplier = 2.0 / (length.toDouble() + 1.0)
 

@@ -34,19 +34,33 @@ class IndicatorsTest {
         assertEquals(20.0, close[0])
         assertEquals(Double.NaN, close[1])
     }
-//
-//    @Test
-//    fun `lowestValue indicator`() {
-//
-//        val chart = ChartHelper(TimeFrame.MIN_5)
-//            .bar(10.0, 20.0, 30.0, 10.0)
-//            .bar(11.0, 21.0, 31.0, 11.0)
-//            .chart
-//
-//        val close = chart.closePrice.lowestValue(2)
-//
-//        assertEquals(20.0, close[0])
-//        assertEquals(Double.NaN, close[1])
-//    }
+
+    @Test
+    fun `lowestValue indicator`() {
+
+        val chart = ChartHelper(TimeFrame.MIN_5)
+            .bar(11.0)
+            .bar(10.0)
+            .chart
+
+        val lowestValue = chart.closePrice.lowestValue(2)
+
+        assertEquals(10.0, lowestValue[0])
+        assertEquals(11.0, lowestValue[1])
+    }
+
+    @Test
+    fun `highestValue indicator`() {
+
+        val chart = ChartHelper(TimeFrame.MIN_5)
+            .bar(10.0)
+            .bar(11.0)
+            .chart
+
+        val highestValue = chart.closePrice.highestValue(2)
+
+        assertEquals(11.0, highestValue[0])
+        assertEquals(10.0, highestValue[1])
+    }
 
 }
