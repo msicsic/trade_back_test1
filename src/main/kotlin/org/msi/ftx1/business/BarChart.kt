@@ -22,6 +22,7 @@ data class BarChart(
         chartsCache[interval] = this
     }
 
+    val size get() = data.size
     val data get() = baseBarChart._data
     val min get(): Double = data.minOf { it.low }
     val max get(): Double = data.maxOf { it.high }

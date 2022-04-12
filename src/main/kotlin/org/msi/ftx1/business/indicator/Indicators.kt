@@ -2,13 +2,13 @@ package org.msi.ftx1.business.indicator
 
 import org.msi.ftx1.business.BarChart
 import org.msi.ftx1.business.backtest.currentTime
+import java.lang.Double.NaN
 import java.time.Instant
+import java.util.*
 
 // ===========================================================
 // Basic price indicators
 // ===========================================================
-
-// TODO: UT for EMA (compare with tradingView)
 
 val BarChart.openPrice: Indicator get() = simpleIndicator { index -> this[index].open }
 
@@ -71,47 +71,28 @@ fun sma(indicator: Indicator, length: Int = 20) = SimpleIndicator(indicator) { i
  */
 fun ema(indicator: Indicator, length: Int = 20): Indicator = object : AbstractIndicator(indicator) {
     val sma = sma(indicator, length)
-    val multiplier = 2.0 / (length.toDouble() + 1.0)
+    val k = 2.0 / (length.toDouble() + 1.0)
+    var values: Array<Double> = Array(0) { NaN }
 
-    fun valueAt(index: Int, relevantBars: Int): Double {
-        if (relevantBars == 0) {
-            return sma[index]
+    private fun initialize() {
+        System.err.println("init: ${barChart.size}")
+        values = Array(barChart.size) { NaN }
+        values[barChart.size - length] = sma[barChart.size - length]
+        (barChart.size - length - 1 downTo 0).forEach {
+            val previous = values[it + 1]
+            val ema = (indicator[it] - previous) * k + previous
+            values[it] = ema
         }
-        val smaAtIndex = sma[index]
-        // TODO: Implement memoization of the previous value (however the index moves with every new bar)
-        val previousValue = valueAt(index = index + 1, relevantBars = relevantBars - 1)
-        return (smaAtIndex - previousValue) * multiplier + previousValue
     }
 
-    override fun internalGetValue(index: Int): Double {
-        return valueAt(index, (length * 2).coerceAtLeast(30))
+    override fun internalGet(index: Int): Double {
+        System.err.println("call with index $index, and chart size ${barChart.size}")
+        if (index >= barChart.size - length) return NaN
+        if (barChart.size != values.size) initialize()
+        return values[index]
     }
 }
 
-/**
- * Calculates the Modified Moving Average (MMA, RMA, or SMMA) of another indicator.
- *
- * Usage:
- *    val mma30 = h1.closePrice.modifiedMovingAverage(length = 30);
- */
-//fun Indicator.modifiedMovingAverage(length: Int = 14): Indicator {
-//    val sma = this.sma(length)
-//    val multiplier = 1.0 / length.toDouble()
-//
-//    fun valueAt(index: Int, relevantBars: Int): Double {
-//        if (relevantBars == 0) {
-//            return sma[index]
-//        }
-//        val smaAtIndex = sma[index]
-//        // TODO: Implement memoization of the previous value (however the index moves with every new bar)
-//        val previousValue = valueAt(index = index + 1, relevantBars = relevantBars - 1)
-//        return (smaAtIndex - previousValue) * multiplier + previousValue
-//    }
-//
-//    return Indicator { index ->
-//        valueAt(index, (length * 2).coerceAtLeast(30))
-//    }
-//}
 
 /**
  * Average True range (ATR) indicator.

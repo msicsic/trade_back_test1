@@ -49,7 +49,7 @@ class BackTestDemo(
 
         // The timeframes our indicators will use.
         val close = chart.closePrice.withLog("close")
-        val ema8 = ema(close, 8).withLog("EMA8")
+        val ema8 = ema(chart.closePrice, 8).withLog("EMA8")
 
         return Strategy(
             // Identifies when to enter a trade.
