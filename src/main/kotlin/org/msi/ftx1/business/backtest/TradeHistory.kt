@@ -14,7 +14,7 @@ class TradeHistory(
     val maxDrawDown get(): Double = initialBalance + trades.sumOf { it.drawDown }
 
     operator fun plusAssign(trade: TradeRecord) {
-        require(trade.amount > 0.0)
+        require(trade.quantity > 0.0)
         trades.add(trade)
     }
 

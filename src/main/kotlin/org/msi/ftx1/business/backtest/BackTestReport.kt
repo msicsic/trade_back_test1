@@ -59,7 +59,7 @@ class BackTestReport(
         get() = tradeHistory.trades.sumOf { this.getRiskReward(it) } / tradeCount
 
     private fun getRiskReward(tradeRecord: TradeRecord): Double {
-        val positionSize = tradeRecord.entryPrice * tradeRecord.amount
+        val positionSize = tradeRecord.entryPrice * tradeRecord.quantity
         val profitLoss = tradeRecord.profitLoss
         val percentageProfitLoss = 1 + profitLoss / (positionSize - abs(profitLoss))
         return percentageProfitLoss / maxDrawDown
@@ -109,7 +109,7 @@ class BackTestReport(
 
     private fun print(trade: TradeRecord) {
         println(String.format("Result                    : ${if (trade.isProfitable) "WIN" else "LOST"} ${trade.type} (Close ${trade.closeReason}) ${Date(trade.timestamp)} to ${Date(trade.exitTimestamp ?: 0L)}, entry $%,.2f, exit $%,.2f, volat %.2f%%", trade.entryPrice, trade.exitPrice, 100.0 * trade.volatility))
-        println(String.format("  Trade                   : %,.2f at $%,.2f with SL $%,.2f, locked $%,.2f with lever x%,.2f (total expo. $%,.2f)", trade.amount, trade.entryPrice, trade.stopLoss, trade.locked, trade.lever, trade.exposure))
+        println(String.format("  Trade                   : %,.2f at $%,.2f with SL $%,.2f, locked $%,.2f with lever x%,.2f (total expo. $%,.2f)", trade.quantity, trade.entryPrice, trade.stopLoss, trade.locked, trade.lever, trade.exposure))
         println(String.format("  Balance                 : $%,.2f => $%,.2f (%.2f%%)", trade.balanceIn, trade.balanceOut, 100.0*trade.balanceProfitPercent))
         println(String.format("  PnL (inc. Fees)         : $%,.2f (fees $%,.2f), RR %,.2f", trade.profitLoss, trade.fees, trade.riskRatio))
         println("----------------------------------")

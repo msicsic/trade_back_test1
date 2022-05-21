@@ -9,14 +9,14 @@ internal class TradeRecordTest {
     /**
      * 1000$
      * 5%, soit 50$ max risk per trade
-     * SL 0.2% => 50 / 0.002 = 25000$ de position theorique, soit un levier de 25x, ce qui est > au max lever de 10
-     * la position max est donc diminuée à 50 / 2.5 = 20$
+     * SL 0.2% => 50 / 0.002 = 25000$ de position theorique, ce qui est sup au max autorisé par le levier 10x (=10000$)
+     * donc => soit diminuer le risque a 20$ (50 / 2.5) (privilégié), soit elargir le SL à 0.5%
      *
      * TODO: comment tenir compte des frais importants avec le levier ?
      */
     private fun createTrade() = TradeRecord(
         balanceExposurePercent = 0.05, // 5% of 1000 = 50$ max risk per trade
-        maxLever = 20.0, // max lever allowed by broker
+        maxLever = 10.0, // max lever allowed by broker
         feesPercentPerSide = 0.01, // % fee of current price
         type = TradeType.LONG,
         timestamp = currentTime,
@@ -34,7 +34,15 @@ internal class TradeRecordTest {
     @Test
     fun `Lever computation`() {
         val trade = createTrade()
+        assertTrue(trade.theoriqTrade eq 25000.0)
+        assertTrue(trade.realTrade eq 10000.0)
         assertTrue(trade.lever eq 10.0)
+    }
+
+    @Test
+    fun `computed amount`() {
+        val trade = createTrade()
+        assertTrue(trade.quantity eq 20.0)
     }
 
     @Test
