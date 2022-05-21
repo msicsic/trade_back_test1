@@ -29,7 +29,7 @@ class Main(
 //            endTime = LocalDateTime.now()
 //        )
 //
-        val demo = BackTestDemo("BTC-PERP", ZonedDateTime.now().minusDays(5), ZonedDateTime.now(), barChartProvider)
+        val demo = BackTestDemo("BTC-PERP", ZonedDateTime.now().minusDays(30), ZonedDateTime.now(), barChartProvider)
         demo.start()
 
 //

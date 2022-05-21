@@ -1,5 +1,7 @@
 package org.msi.ftx1.business.backtest
 
+import java.time.temporal.ChronoUnit
+import java.util.*
 import kotlin.math.abs
 
 class BackTestReport(
@@ -8,11 +10,15 @@ class BackTestReport(
     private val startPrice: Double,
     private val endPrice: Double,
 ) {
+    val duration: String
+        get() =
+            ChronoUnit.DAYS.between(spec.startTime.toLocalDate(), spec.endTime.toLocalDate()).toString()
+
     val tradeCount: Int
         get() = tradeHistory.trades.size
 
     val exposure: Double
-        get() = spec.exposure
+        get() = spec.exposurePercent
 
     val initialBalance: Double
         get() = spec.startingBalance
@@ -47,7 +53,7 @@ class BackTestReport(
         get() = profitability - buyAndHoldProfitability
 
     val buyAndHoldProfitability: Double
-        get() = if (spec.tradeType === TradeType.LONG) (endPrice - startPrice) / startPrice else (startPrice - endPrice) / endPrice
+        get() = (endPrice - startPrice) / startPrice
 
     val riskReward: Double
         get() = tradeHistory.trades.sumOf { this.getRiskReward(it) } / tradeCount
@@ -60,8 +66,11 @@ class BackTestReport(
     }
 
     fun print() {
+        println("---------- TRADES ----------------")
+        tradeHistory.trades.forEach { print(it) }
+
         println("----------------------------------")
-        println("Finished backtest with ${tradeCount} trades")
+        println("Finished backtest with ${tradeCount} trades, period: ${duration} days")
         println("----------------------------------")
 
         // Input parameters
@@ -71,6 +80,13 @@ class BackTestReport(
         // Analysis
         println(String.format("Profitability      : %.2f%%", 100.0 * profitability))
         println(String.format("Buy-and-hold       : %.2f%%", 100.0 * buyAndHoldProfitability))
+        println(
+            String.format(
+                "Win / Loss         : %d / %d",
+                tradeHistory.trades.filter { it.isProfitable }.size,
+                tradeHistory.trades.filter { !it.isProfitable }.size
+            )
+        )
         println(String.format("Vs buy-and-hold    : %.2f%%", 100.0 * vsBuyAndHold))
         println(String.format("Total fees         : %.2f $", tradeHistory.fees))
         println(String.format("Win rate           : %.2f%%", 100.0 * winRate))
@@ -84,8 +100,20 @@ class BackTestReport(
         println(String.format("Profit/loss        : $%,.2f", profitLoss))
         println(String.format("Final balance      : $%,.2f", finalBalance))
         println("----------------------------------")
+
+        println("---------- BEST TRADE ----------------")
+        tradeHistory.trades.maxByOrNull { it.profitLoss }?.let { print(it) }
+        println("---------- WORST TRADE ----------------")
+        tradeHistory.trades.minByOrNull { it.profitLoss }?.let { print(it) }
     }
 
+    private fun print(trade: TradeRecord) {
+        println(String.format("Result                    : ${if (trade.isProfitable) "WIN" else "LOST"} ${trade.type} (Close ${trade.closeReason}) ${Date(trade.timestamp)} to ${Date(trade.exitTimestamp ?: 0L)}, entry $%,.2f, exit $%,.2f, volat %.2f%%", trade.entryPrice, trade.exitPrice, 100.0 * trade.volatility))
+        println(String.format("  Trade                   : %,.2f at $%,.2f with SL $%,.2f, locked $%,.2f with lever x%,.2f (total expo. $%,.2f)", trade.amount, trade.entryPrice, trade.stopLoss, trade.locked, trade.lever, trade.exposure))
+        println(String.format("  Balance                 : $%,.2f => $%,.2f (%.2f%%)", trade.balanceIn, trade.balanceOut, 100.0*trade.balanceProfitPercent))
+        println(String.format("  PnL (inc. Fees)         : $%,.2f (fees $%,.2f), RR %,.2f", trade.profitLoss, trade.fees, trade.riskRatio))
+        println("----------------------------------")
+    }
 }
 
 /**
