@@ -37,7 +37,7 @@ internal class TradeRecordTest {
     }
 
     @Test
-    fun `Lever computation`() {
+    fun `Lever adjustment computation`() {
         val trade = createTrade()
         assertTrue(trade.theoriqTrade eq 25000.0)
         assertTrue(trade.realTrade eq 10000.0)
