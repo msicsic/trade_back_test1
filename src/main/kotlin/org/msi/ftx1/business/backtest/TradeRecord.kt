@@ -16,7 +16,7 @@ enum class CloseReason {
 
 /** A simulated trade record. */
 data class TradeRecord(
-    val balanceExposurePercent: Double,
+    val maxBalanceExposurePercent: Double,
     val maxLever: Double,
     val feesPercentPerSide: Double,
     val type: TradeType,
@@ -34,14 +34,15 @@ data class TradeRecord(
     var exitTimestamp: Long? = null
     val feesPercent: Double = feesPercentPerSide
 
-    val riskValue = balanceExposurePercent*balanceIn
     val stopLoss: Double get() = initialStopLoss ?: when(type) {
-        LONG -> entryPrice*(1-balanceExposurePercent)
-        SHORT -> entryPrice*(1+balanceExposurePercent)
+        LONG -> entryPrice*(1-maxBalanceExposurePercent)
+        SHORT -> entryPrice*(1+maxBalanceExposurePercent)
     }
     val stopLossPercent = abs(entryPrice-stopLoss)/entryPrice
-    val theoriqTrade = riskValue / stopLossPercent
+    val thoriqRiskValue = maxBalanceExposurePercent*balanceIn
+    val theoriqTrade = thoriqRiskValue / stopLossPercent
     val realTrade = min(balanceIn*maxLever, theoriqTrade)
+    val riskValue = stopLossPercent*realTrade
     val quantity = realTrade / entryPrice
     val lever = realTrade / balanceIn
     val entryFees: Double get() = quantity * entryPrice * feesPercent

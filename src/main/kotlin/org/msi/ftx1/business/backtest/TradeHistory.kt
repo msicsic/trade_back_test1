@@ -34,7 +34,7 @@ class TradeHistory(
         if (activeTrade != null || balance <= 0) return
 
         this += TradeRecord(
-            balanceExposurePercent = spec.exposurePercent,
+            maxBalanceExposurePercent = spec.exposurePercent,
             maxLever = spec.maxLever,
             feesPercentPerSide = spec.feePerTrade,
             type = tradeType,
