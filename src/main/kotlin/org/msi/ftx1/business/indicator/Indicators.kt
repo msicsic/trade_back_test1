@@ -87,7 +87,7 @@ fun ema(indicator: Indicator, length: Int = 20): Indicator = object : AbstractIn
 
     override fun internalGet(index: Int): Double {
         System.err.println("call with index $index, and chart size ${barChart.size}")
-        if (index >= barChart.size - length) return NaN
+        if (index > barChart.size - length) return NaN
         if (barChart.size != values.size) initialize()
         return values[index]
     }
