@@ -1,7 +1,7 @@
 package org.msi.ftx1.business.backtest
 
 import org.msi.ftx1.business.BarChart
-import org.msi.ftx1.business.BarChartProvider
+import org.msi.ftx1.business.CandleChartProvider
 import org.msi.ftx1.business.TimeFrame
 import org.msi.ftx1.business.indicator.closePrice
 import org.msi.ftx1.business.indicator.ema
@@ -18,7 +18,7 @@ class BackTestDemo(
     val symbol: String,
     val startTime: ZonedDateTime,
     val endTime: ZonedDateTime,
-    val provider: BarChartProvider
+    val provider: CandleChartProvider
 ) {
 
     fun start() {

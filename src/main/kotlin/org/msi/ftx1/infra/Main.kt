@@ -1,14 +1,16 @@
 package org.msi.ftx1.infra
 
-import org.msi.ftx1.business.*
+import org.msi.ftx1.business.BarChartService
+import org.msi.ftx1.business.CandleChartProvider
+import org.msi.ftx1.business.MarketProvider
 import org.msi.ftx1.business.backtest.BackTestDemo
-import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.ZonedDateTime
 
 fun main() {
     Config().configure().apply {
         Main(
-            barChartProvider = barChartProvider,
+            candleChartProvider = candleChartProvider,
             barChartService = barChartService,
             marketProvider = marketProvider
         ).start()
@@ -16,7 +18,7 @@ fun main() {
 }
 
 class Main(
-    private val barChartProvider: BarChartProvider,
+    private val candleChartProvider: CandleChartProvider,
     private val barChartService: BarChartService,
     private val marketProvider: MarketProvider
 ) {
@@ -29,7 +31,9 @@ class Main(
 //            endTime = LocalDateTime.now()
 //        )
 //
-        val demo = BackTestDemo("BTC-PERP", ZonedDateTime.now().minusDays(30), ZonedDateTime.now(), barChartProvider)
+        val recentTime = ZonedDateTime.of(2022, 5, 15, 0, 0, 0, 0, ZoneId.systemDefault())
+        val fromTime = recentTime.minusDays(30)
+        val demo = BackTestDemo("BTC-PERP", fromTime, recentTime, candleChartProvider)
         demo.start()
 
 //

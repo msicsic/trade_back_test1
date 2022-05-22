@@ -1,13 +1,13 @@
 package org.msi.ftx1.business.backtest
 
-import org.msi.ftx1.business.BarChartProvider
+import org.msi.ftx1.business.CandleChartProvider
 import org.msi.ftx1.business.TimeFrame
 import java.time.ZonedDateTime
 
 /** Specifies the configuration for a back test run.  */
 data class BackTestSpec(
     val symbol: String,
-    val provider: BarChartProvider,
+    val provider: CandleChartProvider,
     val startTime: ZonedDateTime,
     val endTime: ZonedDateTime,
 

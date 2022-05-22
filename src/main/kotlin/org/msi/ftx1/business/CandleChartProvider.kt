@@ -1,10 +1,8 @@
 package org.msi.ftx1.business
 
-import java.time.LocalDateTime
 import java.time.ZonedDateTime
 
-interface BarChartProvider {
-
+interface ChartsProcessor {
     fun processCharts(
         symbols: List<String>,
         interval: TimeFrame,
@@ -12,17 +10,21 @@ interface BarChartProvider {
         endTime: ZonedDateTime,
         candleChartConsumer: (BarChart) -> Unit
     )
+}
 
+interface TradesProvider {
+    fun getTrades(
+        symbol: String,
+        startTime: ZonedDateTime,
+        endTime: ZonedDateTime
+    ): TradeChart
+}
+
+interface CandleChartProvider {
     fun getCandleChart(
         symbol: String,
         interval: TimeFrame,
         startTime: ZonedDateTime,
         endTime: ZonedDateTime
     ): BarChart
-
-    fun getTrades(
-        symbol: String,
-        startTime: ZonedDateTime,
-        endTime: ZonedDateTime
-    ): TradeChart
 }

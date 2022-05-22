@@ -5,13 +5,11 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import org.msi.ftx1.business.*
 import org.msi.ftx1.infra.remote.ftx.FtxClient
-import java.time.LocalDateTime
-import java.time.ZoneId
 import java.time.ZonedDateTime
 
-class BarChartAdapterFTX(
+class CandleChartAdapterFTX(
     private val client: FtxClient
-) : BarChartProvider {
+) : CandleChartProvider, ChartsProcessor, TradesProvider {
 
     override fun getTrades(symbol: String, startTime: ZonedDateTime, endTime: ZonedDateTime) = TradeChart(
         symbol = symbol,
