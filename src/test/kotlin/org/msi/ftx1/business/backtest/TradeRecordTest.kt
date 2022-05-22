@@ -13,7 +13,7 @@ internal class TradeRecordTest {
      * donc => diminuer le trade à 10000, soit 20$ de risque
      *
      * TODO: comment tenir compte des frais importants avec le levier ?
-     * 1000x10=10000x0.1%x2(fees)=20$ de frais, ce qui fait un risque total de 40$
+     * 1000x10=10000x0.1%x2(fees)=20$ de frais, ce qui fait un risque total de 40$ (les frais sont approximés car on ne connait pas le prix de sortie)
      *
      * TODO: faire une simu avec des frais important pour tester l'algo (ex 1% de frais)
      * TODO: calcul break-even price
