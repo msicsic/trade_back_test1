@@ -20,10 +20,10 @@ class Config {
     lateinit var objectMapper: ObjectMapper
     lateinit var httpClient: HttpHandler
     lateinit var ftxClient: FtxClient
-    lateinit var mainController: MainController
+    // lateinit var mainController: MainController
     lateinit var candleChartProvider: CandleChartProvider
-    lateinit var marketProvider: MarketProvider
-    var barChartService = BarChartService()
+    // lateinit var marketProvider: MarketProvider
+    // lateinit var barChartService: BarChartService
 
     fun configure(): Config {
 
@@ -34,15 +34,13 @@ class Config {
             .deactivateDefaultTyping()  // other Jackson config...
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false)
-
         httpClient = JavaHttpClient()
-
         ftxClient = FtxClient(httpClient, objectMapper)
 
         candleChartProvider = CandleChartAdapterFTX(ftxClient)
-        marketProvider = MarketAdapterFTX(ftxClient)
-
-        mainController = MainController(ftxClient, objectMapper)
+        // marketProvider = MarketAdapterFTX(ftxClient)
+        // barChartService = BarChartService()
+        // mainController = MainController(ftxClient, objectMapper)
 
         return this
     }

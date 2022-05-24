@@ -33,7 +33,7 @@ class BackTestDemo(
             // even though the input data consists of 5-minute bars.
             runTimeFrame = TimeFrame.HOUR_1,
             // Starting account balance, in counter currency units. E.g. USD for a BTC/USD pair.
-            startingBalance = 100000.0,
+            startingBalance = 10000.0,
             // Risks 2% of the account in each trade.
             exposurePercent = 2.0 / 100.0,
             maxLever = 20.0,
@@ -61,11 +61,11 @@ class BackTestDemo(
                 val ema1 = ema(close, 8)
 
                 val longIndicator = close crossedOver ema1
-                if (!longIndicator[0] && trade.type == TradeType.LONG && trade.isOpen) {
-                    trade.exit(false)
-                } else if (longIndicator[0] && trade.type == TradeType.SHORT && trade.isOpen) {
-                    trade.exit(false)
-                }
+//                if (!longIndicator[0] && trade.type == TradeType.LONG && trade.isOpen) {
+//                    trade.exit(false)
+//                } else if (longIndicator[0] && trade.type == TradeType.SHORT && trade.isOpen) {
+//                    trade.exit(false)
+//                }
             }
 
             override fun evaluateEntry(chart: BarChart, history: TradeHistory, currentTime: Long) {

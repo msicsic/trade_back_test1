@@ -11,16 +11,14 @@ fun main() {
     Config().configure().apply {
         Main(
             candleChartProvider = candleChartProvider,
-            barChartService = barChartService,
-            marketProvider = marketProvider
         ).start()
     }
 }
 
 class Main(
     private val candleChartProvider: CandleChartProvider,
-    private val barChartService: BarChartService,
-    private val marketProvider: MarketProvider
+    // private val barChartService: BarChartService,
+    // private val marketProvider: MarketProvider
 ) {
 
     fun start() {

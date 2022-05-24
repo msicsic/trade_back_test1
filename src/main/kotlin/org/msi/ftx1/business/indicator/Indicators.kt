@@ -75,7 +75,6 @@ fun ema(indicator: Indicator, length: Int = 20): Indicator = object : AbstractIn
     var values: Array<Double> = Array(0) { NaN }
 
     private fun initialize() {
-        System.err.println("init: ${barChart.size}")
         values = Array(barChart.size) { NaN }
         values[barChart.size - length] = sma[barChart.size - length]
         (barChart.size - length - 1 downTo 0).forEach {
@@ -86,7 +85,6 @@ fun ema(indicator: Indicator, length: Int = 20): Indicator = object : AbstractIn
     }
 
     override fun internalGet(index: Int): Double {
-        System.err.println("call with index $index, and chart size ${barChart.size}")
         if (index > barChart.size - length) return NaN
         if (barChart.size != values.size) initialize()
         return values[index]

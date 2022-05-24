@@ -84,7 +84,6 @@ data class TradeRecord(
         currentPrice = price
         currentTime = time
         if (shouldStop()) {
-            System.err.println("STOP LOSS")
             currentPrice = stopLoss
             exit(true)
         }
@@ -92,7 +91,11 @@ data class TradeRecord(
         maxPrice = max(maxPrice, currentPrice)
     }
 
-    fun exit(stopLoss: Boolean) {
+    fun exit() {
+        exit(false)
+    }
+
+    private fun exit(stopLoss: Boolean) {
         require(isOpen)
         this.closeReason = if (stopLoss) CloseReason.SL else CloseReason.TP
         this.exitPrice = currentPrice
@@ -101,6 +104,9 @@ data class TradeRecord(
 
     private fun shouldStop(): Boolean {
         require(isOpen)
-        return currentPrice <= stopLoss
+        return when(type) {
+            LONG -> currentPrice <= stopLoss
+            SHORT -> currentPrice >= stopLoss
+        }
     }
 }

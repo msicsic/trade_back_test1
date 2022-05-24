@@ -80,13 +80,6 @@ class BackTestReport(
         // Analysis
         println(String.format("Profitability      : %.2f%%", 100.0 * profitability))
         println(String.format("Buy-and-hold       : %.2f%%", 100.0 * buyAndHoldProfitability))
-        println(
-            String.format(
-                "Win / Loss         : %d / %d",
-                tradeHistory.trades.filter { it.isProfitable }.size,
-                tradeHistory.trades.filter { !it.isProfitable }.size
-            )
-        )
         println(String.format("Vs buy-and-hold    : %.2f%%", 100.0 * vsBuyAndHold))
         println(String.format("Total fees         : %.2f $", tradeHistory.fees))
         println(String.format("Win rate           : %.2f%%", 100.0 * winRate))

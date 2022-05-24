@@ -27,7 +27,7 @@ class TradeHistory(
     }
 
     fun exitActiveTrade() {
-        activeTrade?.exit(false)
+        activeTrade?.exit()
     }
 
     fun openTrade(spec: BackTestSpec, tradeType: TradeType, currentPrice: Double, currentTime: Long, stopLoss: Double) {
