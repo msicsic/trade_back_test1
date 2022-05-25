@@ -157,7 +157,7 @@ internal class TradeRecordTest {
     }
 
     @Test
-    fun `when SL is touched on a LONG, exitPrice must be equal to stopLoss`() {
+    fun `when SL is touched on a LONG`() {
         val trade = TradeRecord(
             maxBalanceExposurePercent = 0.05, // 5% of 1000 = 50$ max risk per trade
             maxLever = 10.0, // max lever allowed by broker
@@ -170,10 +170,18 @@ internal class TradeRecordTest {
         )
         trade.updateCurrentPrice(0.0, 2L)
         assertTrue(trade.exitPrice!! eq trade.stopLoss)
+        assertEquals(CloseReason.SL, trade.closeReason!!)
+        assertFalse(trade.isProfitable)
+        assertTrue(abs(trade.profitLoss) eq trade.riskValue + trade.fees)
+        assertTrue(10.0 eq trade.entryFees)
+        assertTrue(9.98 eq trade.exitFees)
+        assertTrue(19.98 eq trade.fees)
+        assertTrue(-20.0 eq trade.rawProfitLoss)
+        assertTrue(-39.98 eq trade.profitLoss)
     }
 
     @Test
-    fun `when SL is touched on a SHORT, exitPrice must be equal to stopLoss`() {
+    fun `when SL is touched on a SHORT`() {
         val trade = TradeRecord(
             maxBalanceExposurePercent = 0.05, // 5% of 1000 = 50$ max risk per trade
             maxLever = 10.0, // max lever allowed by broker
@@ -184,72 +192,16 @@ internal class TradeRecordTest {
             entryPrice = 100.0, // open price
             initialStopLoss = 100.2 // 0.2% SL computed by the strategy
         )
-        trade.updateCurrentPrice(500.0, 2L)
+        trade.updateCurrentPrice(200.0, 2L)
         assertTrue(trade.exitPrice!! eq trade.stopLoss)
-    }
-
-    @Test
-    fun `when SL is touched for LONG, exit reason should be SL`() {
-        val trade = TradeRecord(
-            maxBalanceExposurePercent = 0.05, // 5% of 1000 = 50$ max risk per trade
-            maxLever = 10.0, // max lever allowed by broker
-            feesPercentPerSide = 0.1/100.0, // 0.1% fee of current price
-            type = TradeType.LONG,
-            timestamp = currentTime,
-            balanceIn = 1000.0,
-            entryPrice = 100.0, // open price
-            initialStopLoss = 99.8 // 0.2% SL computed by the strategy
-        )
-        trade.updateCurrentPrice(0.0, 2L)
+        assertFalse(trade.isProfitable)
         assertEquals(CloseReason.SL, trade.closeReason!!)
-    }
-
-    @Test
-    fun `when SL is touched for SHORT, exit reason should be SL`() {
-        val trade = TradeRecord(
-            maxBalanceExposurePercent = 0.05, // 5% of 1000 = 50$ max risk per trade
-            maxLever = 10.0, // max lever allowed by broker
-            feesPercentPerSide = 0.1/100.0, // 0.1% fee of current price
-            type = TradeType.SHORT,
-            timestamp = currentTime,
-            balanceIn = 1000.0,
-            entryPrice = 100.0, // open price
-            initialStopLoss = 100.2 // 0.2% SL computed by the strategy
-        )
-        trade.updateCurrentPrice(500.0, 2L)
-        assertEquals(CloseReason.SL, trade.closeReason!!)
-    }
-
-    @Test
-    fun `when SL is touched for LONG, the PnL should equals riskValue + fees`() {
-        val trade = TradeRecord(
-            maxBalanceExposurePercent = 0.05, // 5% of 1000 = 50$ max risk per trade
-            maxLever = 10.0, // max lever allowed by broker
-            feesPercentPerSide = 0.1/100.0, // 0.1% fee of current price
-            type = TradeType.LONG,
-            timestamp = currentTime,
-            balanceIn = 1000.0,
-            entryPrice = 100.0, // open price
-            initialStopLoss = 99.8 // 0.2% SL computed by the strategy
-        )
-        trade.updateCurrentPrice(0.0, 2L)
         assertTrue(abs(trade.profitLoss) eq trade.riskValue + trade.fees)
-    }
-
-    @Test
-    fun `when SL is touched for SHORT, the PnL should equals riskValue + fees`() {
-        val trade = TradeRecord(
-            maxBalanceExposurePercent = 0.05, // 5% of 1000 = 50$ max risk per trade
-            maxLever = 10.0, // max lever allowed by broker
-            feesPercentPerSide = 0.1/100.0, // 0.1% fee of current price
-            type = TradeType.SHORT,
-            timestamp = currentTime,
-            balanceIn = 1000.0,
-            entryPrice = 100.0, // open price
-            initialStopLoss = 100.2 // 0.2% SL computed by the strategy
-        )
-        trade.updateCurrentPrice(500.0, 2L)
-        assertTrue(abs(trade.profitLoss) eq trade.riskValue + trade.fees)
+        assertTrue(10.0 eq trade.entryFees)
+        assertTrue(10.02 eq trade.exitFees)
+        assertTrue(20.02 eq trade.fees)
+        assertTrue(-20.0 eq trade.rawProfitLoss)
+        assertTrue(-40.02 eq trade.profitLoss)
     }
 
     @Test

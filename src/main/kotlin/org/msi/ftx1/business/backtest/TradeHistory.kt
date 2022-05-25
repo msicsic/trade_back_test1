@@ -10,8 +10,17 @@ class TradeHistory(
     val trades: MutableList<TradeRecord> = mutableListOf()
     val fees: Double get() = trades.sumOf { it.fees }
 
-    // TODO
-    val maxDrawDown get(): Double = initialBalance + trades.sumOf { it.drawDown }
+    fun maxDrawDown(): Double {
+        var balance = initialBalance
+        var min = initialBalance
+        for (trade in trades) {
+            balance += trade.profitLoss
+            if (balance < min) {
+                min = balance
+            }
+        }
+        return min / initialBalance
+    }
 
     operator fun plusAssign(trade: TradeRecord) {
         require(trade.quantity > 0.0)

@@ -42,7 +42,7 @@ class Main(
 //            endTime = LocalDateTime.now()
 //        )
 //
-//        val volatility = candleChartService.currentVolatility(chart)
+//        val volatility = candleChartServFice.currentVolatility(chart)
 //        System.err.println("volatility: $volatility, min / max / mean : ${chart.min} / ${chart.max} / ${chart.mean}")
 //
 //        val futures = marketProvider.getFutureMarkets()

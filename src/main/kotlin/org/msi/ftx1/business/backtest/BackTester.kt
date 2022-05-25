@@ -16,7 +16,7 @@ import java.time.ZonedDateTime
 
 var currentTime: Long = System.currentTimeMillis()
 
-// TODO: tempo solution for travel...
+// TODO: tempo solution for travel... => put this in the configuration
 class CandleBarProviderWithCache(
     private val provider: CandleChartProvider
 ) : CandleChartProvider {

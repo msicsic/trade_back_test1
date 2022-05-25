@@ -77,7 +77,7 @@ class BackTestDemo(
                 if (longIndicator[0]) {
                     history.openTrade(spec, TradeType.LONG, close[0], currentTime, close[0]*(1.0-spec.exposurePercent))
                 } else if (!longIndicator[0]) {
-                    history.openTrade(spec, TradeType.SHORT, close[0], currentTime, close[0]*(1.0-spec.exposurePercent))
+                    history.openTrade(spec, TradeType.SHORT, close[0], currentTime, close[0]*(1.0+spec.exposurePercent))
                 }
             }
 

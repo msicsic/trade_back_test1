@@ -27,15 +27,7 @@ class BackTestReport(
         get() = tradeHistory.balance
 
     val maxDrawDown: Double
-        get() = tradeHistory.maxDrawDown
-
-    /**
-     * The Sortino ratio with a risk-free rate of 0%.
-     *
-     * {@see https://www.investopedia.com/terms/s/sortinoratio.asp}
-     */
-    val sortinoRatio: Double
-        get() = (profitability - RISK_FREE_RATE) / maxDrawDown
+        get() = tradeHistory.maxDrawDown()
 
     val profitability: Double
         get() = profitLoss / initialBalance
@@ -85,7 +77,6 @@ class BackTestReport(
         println(String.format("Win rate           : %.2f%%", 100.0 * winRate))
         println(String.format("Max drawdown       : %.2f%%", 100.0 * maxDrawDown))
         println(String.format("Risk/reward ratio  : %.2f", riskReward))
-        println(String.format("Sortino ratio      : %.2f", sortinoRatio))
         println("----------------------------------")
 
         // Financial result
@@ -108,10 +99,3 @@ class BackTestReport(
         println("----------------------------------")
     }
 }
-
-/**
- * The risk-free rate to use when calculating Sharpe and Sortino ratios.
- *
- * Current personal savings interest ratio is near zero or negative so this value is mostly included for clarity.
- */
-private const val RISK_FREE_RATE = 0.0
