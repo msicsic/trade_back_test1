@@ -7,8 +7,9 @@ import kotlin.math.abs
 internal class TradeRecordTest {
 
     /**
-     * 1000$
-     * 5%, soit 50$ max risk per trade
+     * Example:
+     * 1000$ sur le compte, levier max 10x
+     * 5% par trade, soit 50$ max risk per trade
      * SL 0.2% => 50 / 0.002 = 25000$ de position theorique, ce qui est sup au max autorisé par le levier 10x (=10000$)
      * donc => diminuer le trade à 10000, soit 20$ de risque
      *
@@ -20,6 +21,33 @@ internal class TradeRecordTest {
      * TODO: calcul de prix cible en fonction d'un RR en param (prix nécessaire pour obtenir un RR de 3 par ex)
      */
 
+    // Lever should be adjusted to have reasonable fees
+    @Test
+    fun `high fees`() {
+        val trade = TradeRecord(
+            maxBalanceExposurePercent = 0.05, // 5% of 1000 = 50$ max risk per trade
+            maxLever = 100.0, // max lever allowed by broker
+            feesPercentPerSide = 0.2/100.0, // 0.2% fee of current price
+            type = TradeType.LONG,
+            timestamp = currentTime,
+            balanceIn = 1000.0,
+            entryPrice = 100.0, // open price
+            stopLoss = 99.8 // 0.2% SL computed by the strategy
+        )
+        trade.updateCurrentPrice(0.0, 2L)
+        assertTrue(trade.stopLoss eq 99.8)
+        assertTrue(trade.theoriqTrade eq 25000.0)
+        assertTrue(trade.realTrade eq 25000.0)
+        assertTrue(trade.lever eq 100.0)
+        assertTrue(trade.riskValue eq 50.0)
+        assertTrue(trade.stopLossPercent eq 0.002)
+        assertTrue(trade.entryFees eq 50.0)
+        assertTrue(trade.exitFees eq 49.9)
+        assertTrue(trade.fees eq 99.9)
+        assertTrue(trade.profitLoss eq -149.9)
+    }
+
+
     @Test
     fun `SL on a LONG must be correct`() {
         val trade = TradeRecord(
@@ -30,7 +58,7 @@ internal class TradeRecordTest {
             timestamp = currentTime,
             balanceIn = 1000.0,
             entryPrice = 100.0, // open price
-            initialStopLoss = 99.8 // 0.2% SL computed by the strategy
+            stopLoss = 99.8 // 0.2% SL computed by the strategy
         )
         assertTrue(trade.stopLoss eq 99.8)
     }
@@ -45,7 +73,7 @@ internal class TradeRecordTest {
             timestamp = currentTime,
             balanceIn = 1000.0,
             entryPrice = 100.0, // open price
-            initialStopLoss = 100.2 // 0.2% SL computed by the strategy
+            stopLoss = 100.2 // 0.2% SL computed by the strategy
         )
         assertTrue(trade.stopLoss eq 100.2)
     }
@@ -60,7 +88,7 @@ internal class TradeRecordTest {
             timestamp = currentTime,
             balanceIn = 1000.0,
             entryPrice = 100.0, // open price
-            initialStopLoss = 99.8 // 0.2% SL computed by the strategy
+            stopLoss = 99.8 // 0.2% SL computed by the strategy
         )
         assertTrue(trade.theoriqTrade eq 25000.0)
         assertTrue(trade.realTrade eq 10000.0)
@@ -79,13 +107,33 @@ internal class TradeRecordTest {
             timestamp = currentTime,
             balanceIn = 1000.0,
             entryPrice = 100.0, // open price
-            initialStopLoss = 99.8 // 0.2% SL computed by the strategy
+            stopLoss = 100.2 // 0.2% SL computed by the strategy
         )
         assertTrue(trade.theoriqTrade eq 25000.0)
         assertTrue(trade.realTrade eq 10000.0)
         assertTrue(trade.lever eq 10.0)
         assertTrue(trade.riskValue eq 20.0)
         assertTrue(trade.stopLossPercent eq 0.002)
+    }
+
+    @Test
+    fun `Lever for LONG should be max allowed to free available money`() {
+        val trade = TradeRecord(
+            maxBalanceExposurePercent = 0.05, // 5% of 10000 = 500$ max risk per trade
+            maxLever = 100.0, // max lever allowed by broker
+            feesPercentPerSide = 0.1/100.0, // 0.1% fee of current price
+            type = TradeType.LONG,
+            timestamp = currentTime,
+            balanceIn = 10000.0,
+            entryPrice = 100.0, // open price
+            stopLoss = 95.0 // 5% SL computed by the strategy
+        )
+        assertTrue(trade.theoriqTrade eq 10000.0)
+        assertTrue(trade.realTrade eq 10000.0)
+        assertTrue(trade.riskValue eq 500.0)
+        assertTrue(trade.stopLossPercent eq 0.05)
+        assertTrue(trade.lever eq 100.0)
+        assertTrue(trade.locked eq 100.0)
     }
 
     @Test
@@ -98,11 +146,12 @@ internal class TradeRecordTest {
             timestamp = currentTime,
             balanceIn = 1000.0,
             entryPrice = 100.0, // open price
-            initialStopLoss = 99.8 // 0.2% SL computed by the strategy
+            stopLoss = 99.8 // 0.2% SL computed by the strategy
         )
         assertTrue(trade.theoriqTrade eq 25000.0)
         assertTrue(trade.realTrade eq 25000.0)
-        assertTrue(trade.lever eq 25.0)
+        assertTrue(trade.lever eq 100.0)
+        assertTrue(trade.locked eq 250.0)
         assertTrue(trade.riskValue eq 50.0)
         assertTrue(trade.stopLossPercent eq 0.002)
     }
@@ -117,11 +166,12 @@ internal class TradeRecordTest {
             timestamp = currentTime,
             balanceIn = 1000.0,
             entryPrice = 100.0, // open price
-            initialStopLoss = 100.2 // 0.2% SL computed by the strategy
+            stopLoss = 100.2 // 0.2% SL computed by the strategy
         )
         assertTrue(trade.theoriqTrade eq 25000.0)
         assertTrue(trade.realTrade eq 25000.0)
-        assertTrue(trade.lever eq 25.0)
+        assertTrue(trade.lever eq 100.0)
+        assertTrue(trade.locked eq 250.0)
         assertTrue(trade.riskValue eq 50.0)
         assertTrue(trade.stopLossPercent eq 0.002)
     }
@@ -136,7 +186,7 @@ internal class TradeRecordTest {
             timestamp = currentTime,
             balanceIn = 1000.0,
             entryPrice = 100.0, // open price
-            initialStopLoss = 99.8 // 0.2% SL computed by the strategy
+            stopLoss = 99.8 // 0.2% SL computed by the strategy
         )
         assertTrue(trade.quantity eq 100.0)
     }
@@ -151,7 +201,7 @@ internal class TradeRecordTest {
             timestamp = currentTime,
             balanceIn = 1000.0,
             entryPrice = 100.0, // open price
-            initialStopLoss = 100.2 // 0.2% SL computed by the strategy
+            stopLoss = 100.2 // 0.2% SL computed by the strategy
         )
         assertTrue(trade.quantity eq 100.0)
     }
@@ -166,7 +216,7 @@ internal class TradeRecordTest {
             timestamp = currentTime,
             balanceIn = 1000.0,
             entryPrice = 100.0, // open price
-            initialStopLoss = 99.8 // 0.2% SL computed by the strategy
+            stopLoss = 99.8 // 0.2% SL computed by the strategy
         )
         trade.updateCurrentPrice(0.0, 2L)
         assertTrue(trade.exitPrice!! eq trade.stopLoss)
@@ -190,7 +240,7 @@ internal class TradeRecordTest {
             timestamp = currentTime,
             balanceIn = 1000.0,
             entryPrice = 100.0, // open price
-            initialStopLoss = 100.2 // 0.2% SL computed by the strategy
+            stopLoss = 100.2 // 0.2% SL computed by the strategy
         )
         trade.updateCurrentPrice(200.0, 2L)
         assertTrue(trade.exitPrice!! eq trade.stopLoss)
@@ -214,7 +264,7 @@ internal class TradeRecordTest {
             timestamp = currentTime,
             balanceIn = 1000.0,
             entryPrice = 100.0, // open price
-            initialStopLoss = 99.8 // 0.2% SL computed by the strategy
+            stopLoss = 99.8 // 0.2% SL computed by the strategy
         )
         trade.updateCurrentPrice(200.0, 2L)
         trade.exit()
@@ -237,7 +287,7 @@ internal class TradeRecordTest {
             timestamp = currentTime,
             balanceIn = 1000.0,
             entryPrice = 100.0, // open price
-            initialStopLoss = 100.2 // 0.2% SL computed by the strategy
+            stopLoss = 100.2 // 0.2% SL computed by the strategy
         )
         trade.updateCurrentPrice(0.0, 2L)
         trade.exit()

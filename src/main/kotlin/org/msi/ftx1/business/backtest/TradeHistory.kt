@@ -50,7 +50,7 @@ class TradeHistory(
             timestamp = currentTime,
             balanceIn = balance,
             entryPrice = currentPrice,
-            initialStopLoss = stopLoss
+            stopLoss = stopLoss
         )
     }
 }

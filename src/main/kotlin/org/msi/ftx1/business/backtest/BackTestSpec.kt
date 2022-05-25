@@ -20,5 +20,4 @@ data class BackTestSpec(
     val startingBalance: Double,
     /** The average fee % charged by the exchange in each trade. */
     val feePerTrade: Double,
-
-    )
+)

@@ -14,11 +14,8 @@ enum class CloseReason {
     TP, SL
 }
 
-// TODO: try to maximize usable lever in order to minimize locked value (to allow other parallel trades on other pairs)
-
-
 /** A simulated trade record. */
-data class TradeRecord(
+class TradeRecord(
     val maxBalanceExposurePercent: Double,
     val maxLever: Double,
     val feesPercentPerSide: Double,
@@ -26,43 +23,46 @@ data class TradeRecord(
     val timestamp: Long,
     val balanceIn: Double,
     val entryPrice: Double,
-    val initialStopLoss: Double?,
+    stopLoss: Double?,
 ) {
+
     private var currentPrice: Double = entryPrice
     private var currentTime: Long = timestamp
-    var minPrice: Double = entryPrice
-    var maxPrice: Double = entryPrice
     var closeReason: CloseReason? = null
     var exitPrice: Double? = null
     var exitTimestamp: Long? = null
     val feesPercent: Double = feesPercentPerSide
-
-    val stopLoss: Double get() = (initialStopLoss ?: when(type) {
-        LONG -> entryPrice*(1-maxBalanceExposurePercent)
-        SHORT -> entryPrice*(1+maxBalanceExposurePercent)
-    }).also {
-        if (type == LONG && it > entryPrice || type == SHORT && it < entryPrice) throw java.lang.IllegalArgumentException("wrong SL parameter")
-    }
-    val stopLossPercent = abs(entryPrice-stopLoss)/entryPrice
+    val stopLoss: Double = stopLoss ?: maxStopLoss
+    val stopLossPercent = abs(entryPrice-this.stopLoss)/entryPrice
     val thoriqRiskValue = maxBalanceExposurePercent*balanceIn
     val theoriqTrade = thoriqRiskValue / stopLossPercent
     val realTrade = min(balanceIn*maxLever, theoriqTrade)
     val riskValue = stopLossPercent*realTrade
     val quantity = realTrade / entryPrice
-    val lever = realTrade / balanceIn
+    val lever = maxLever
     val entryFees: Double get() = quantity * entryPrice * feesPercent
     val exitFees: Double get() = quantity * currentPrice * feesPercent
     val volatility: Double get() = ((exitPrice ?: entryPrice) - entryPrice) / entryPrice
-
     val exposure: Double get() = realTrade
     val isOpen: Boolean get() = closeReason == null
     val isProfitable: Boolean get() = profitLoss > 0.0
     val fees: Double get() = entryFees + exitFees
     val locked: Double get() = quantity * entryPrice / lever
     val balanceOut: Double get() = balanceIn + profitLoss
-
-    val tradeProfitPercent: Double get() = profitLoss / locked
     val balanceProfitPercent: Double get() = 1- (balanceIn / balanceOut)
+//
+//    private fun computeLever(maxLever: Double): Double {
+//        // max fees = 25%
+//        val maxFeesPercent = 25.0/100.0
+//
+//    }
+
+    private val maxStopLoss
+        get() = when(type) {
+            LONG -> entryPrice*(1-maxBalanceExposurePercent)
+            SHORT -> entryPrice*(1+maxBalanceExposurePercent)
+        }
+
     val profitLoss: Double
         get() = when (type) {
             LONG -> quantity * (currentPrice - entryPrice) - fees
@@ -78,6 +78,13 @@ data class TradeRecord(
             SHORT -> quantity * (entryPrice - currentPrice)
         }
 
+    init {
+        if (type == LONG && this.stopLoss > entryPrice || type == SHORT && this.stopLoss < entryPrice)
+            throw java.lang.IllegalArgumentException("wrong SL parameter")
+        if (stopLossPercent > maxBalanceExposurePercent && abs(stopLossPercent - maxBalanceExposurePercent) > 0.001)
+            throw java.lang.IllegalArgumentException("SL cannot be > to $maxBalanceExposurePercent")
+    }
+
     fun updateCurrentPrice(price: Double, time: Long) {
         currentPrice = price
         currentTime = time
@@ -85,8 +92,6 @@ data class TradeRecord(
             currentPrice = stopLoss
             exit(true)
         }
-        minPrice = min(minPrice, currentPrice)
-        maxPrice = max(maxPrice, currentPrice)
     }
 
     fun exit() {

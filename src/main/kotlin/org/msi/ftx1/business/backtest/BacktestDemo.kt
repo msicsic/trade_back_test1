@@ -46,7 +46,8 @@ class BackTestDemo(
         // TODO: ne pas se baser uniquement sur le close, mais surtout le range de la bougie pour le calcul des trades (ouverture et cloture)
 
         // trouver les resistances et supports horizontaux, dans les HT en premier, puis dans les LT
-        // algo pour trouver les pivots (sommets et creux) => ceux a tester pour trouver les S/P
+        // TODO: algo pour trouver les pivots (sommets et creux) => ceux a tester pour trouver les S/P
+        // TODO: detection des imbalances
 
         // calcul de force de trend (taille des bougies en trend et retracement : voir : https://www.youtube.com/watch?v=6S41IPUs690)
         // => trouver la diminution de la trend (indicateur peut faire le meme job ?)
@@ -80,7 +81,6 @@ class BackTestDemo(
                     history.openTrade(spec, TradeType.SHORT, close[0], currentTime, close[0]*(1.0+spec.exposurePercent))
                 }
             }
-
         }
 
         // Runs the backtest over the whole test dataset.
