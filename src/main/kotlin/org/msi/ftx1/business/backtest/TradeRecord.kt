@@ -31,15 +31,17 @@ class TradeRecord(
     var closeReason: CloseReason? = null
     var exitPrice: Double? = null
     var exitTimestamp: Long? = null
+
     val feesPercent: Double = feesPercentPerSide
     val stopLoss: Double = stopLoss ?: maxStopLoss
     val stopLossPercent = abs(entryPrice-this.stopLoss)/entryPrice
     val thoriqRiskValue = maxBalanceExposurePercent*balanceIn
     val theoriqTrade = thoriqRiskValue / stopLossPercent
-    val realTrade = min(balanceIn*maxLever, theoriqTrade)
-    val riskValue = stopLossPercent*realTrade
-    val quantity = realTrade / entryPrice
-    val lever = maxLever
+    val realTrade: Double
+    val riskValue: Double
+    val quantity: Double
+    val lever: Double
+
     val entryFees: Double get() = quantity * entryPrice * feesPercent
     val exitFees: Double get() = quantity * currentPrice * feesPercent
     val volatility: Double get() = ((exitPrice ?: entryPrice) - entryPrice) / entryPrice
@@ -50,12 +52,6 @@ class TradeRecord(
     val locked: Double get() = quantity * entryPrice / lever
     val balanceOut: Double get() = balanceIn + profitLoss
     val balanceProfitPercent: Double get() = 1- (balanceIn / balanceOut)
-//
-//    private fun computeLever(maxLever: Double): Double {
-//        // max fees = 25%
-//        val maxFeesPercent = 25.0/100.0
-//
-//    }
 
     private val maxStopLoss
         get() = when(type) {
@@ -79,6 +75,13 @@ class TradeRecord(
         }
 
     init {
+        val approxTotalFeesPercent = 2.0*feesPercentPerSide
+        val totalRisk = maxBalanceExposurePercent*balanceIn
+        realTrade = min(balanceIn*maxLever, totalRisk / (stopLossPercent + approxTotalFeesPercent))
+        riskValue = stopLossPercent*realTrade
+        quantity = realTrade / entryPrice
+        lever = maxLever
+
         if (type == LONG && this.stopLoss > entryPrice || type == SHORT && this.stopLoss < entryPrice)
             throw java.lang.IllegalArgumentException("wrong SL parameter")
         if (stopLossPercent > maxBalanceExposurePercent && abs(stopLossPercent - maxBalanceExposurePercent) > 0.001)

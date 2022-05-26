@@ -13,20 +13,61 @@ internal class TradeRecordTest {
      * SL 0.2% => 50 / 0.002 = 25000$ de position theorique, ce qui est sup au max autorisé par le levier 10x (=10000$)
      * donc => diminuer le trade à 10000, soit 20$ de risque
      *
-     * TODO: comment tenir compte des frais importants avec le levier ?
-     * 1000x10=10000x0.1%x2(fees)=20$ de frais, ce qui fait un risque total de 40$ (les frais sont approximés car on ne connait pas le prix de sortie)
-     *
-     * TODO: faire une simu avec des frais important pour tester l'algo (ex 1% de frais)
      * TODO: calcul break-even price
      * TODO: calcul de prix cible en fonction d'un RR en param (prix nécessaire pour obtenir un RR de 3 par ex)
      */
 
-    // Lever should be adjusted to have reasonable fees
     @Test
-    fun `high fees`() {
+    fun `high fees should lower the position`() {
         val trade = TradeRecord(
             maxBalanceExposurePercent = 0.05, // 5% of 1000 = 50$ max risk per trade
             maxLever = 100.0, // max lever allowed by broker
+            feesPercentPerSide = 1.0/100.0, // 0.2% fee of current price
+            type = TradeType.LONG,
+            timestamp = currentTime,
+            balanceIn = 1000.0,
+            entryPrice = 100.0, // open price
+            stopLoss = 99.8 // 0.2% SL computed by the strategy
+        )
+        trade.updateCurrentPrice(0.0, 2L)
+        assertTrue(trade.stopLoss eq 99.8)
+        assertTrue(trade.theoriqTrade eq 25000.0)
+        assertTrue(trade.realTrade eq 2272.727)
+        assertTrue(trade.lever eq 100.0)
+        assertTrue(trade.riskValue eq 4.545)
+        assertTrue(trade.stopLossPercent eq 0.002)
+        assertTrue(trade.fees eq 45.41)
+        assertTrue(trade.profitLoss eq -(trade.riskValue+trade.fees))
+    }
+
+    @Test
+    fun `high fees should lower the position, with low lever`() {
+        val trade = TradeRecord(
+            maxBalanceExposurePercent = 0.05, // 5% of 1000 = 50$ max risk per trade
+            maxLever = 2.0, // max lever allowed by broker
+            feesPercentPerSide = 1.0/100.0, // 0.2% fee of current price
+            type = TradeType.LONG,
+            timestamp = currentTime,
+            balanceIn = 1000.0,
+            entryPrice = 100.0, // open price
+            stopLoss = 99.8 // 0.2% SL computed by the strategy
+        )
+        trade.updateCurrentPrice(0.0, 2L)
+        assertTrue(trade.stopLoss eq 99.8)
+        assertTrue(trade.theoriqTrade eq 25000.0)
+        assertTrue(trade.realTrade eq 2000.0)
+        assertTrue(trade.lever eq 2.0)
+        assertTrue(trade.riskValue eq 4.0)
+        assertTrue(trade.stopLossPercent eq 0.002)
+        assertTrue(trade.fees eq 39.96)
+        assertTrue(trade.profitLoss eq -(trade.riskValue+trade.fees))
+    }
+
+    @Test
+    fun `high fees low lever`() {
+        val trade = TradeRecord(
+            maxBalanceExposurePercent = 0.05, // 5% of 1000 = 50$ max risk per trade
+            maxLever = 5.0, // max lever allowed by broker
             feesPercentPerSide = 0.2/100.0, // 0.2% fee of current price
             type = TradeType.LONG,
             timestamp = currentTime,
@@ -37,45 +78,12 @@ internal class TradeRecordTest {
         trade.updateCurrentPrice(0.0, 2L)
         assertTrue(trade.stopLoss eq 99.8)
         assertTrue(trade.theoriqTrade eq 25000.0)
-        assertTrue(trade.realTrade eq 25000.0)
-        assertTrue(trade.lever eq 100.0)
-        assertTrue(trade.riskValue eq 50.0)
+        assertTrue(trade.realTrade eq 5000.0)
+        assertTrue(trade.lever eq 5.0)
+        assertTrue(trade.riskValue eq 10.0)
         assertTrue(trade.stopLossPercent eq 0.002)
-        assertTrue(trade.entryFees eq 50.0)
-        assertTrue(trade.exitFees eq 49.9)
-        assertTrue(trade.fees eq 99.9)
-        assertTrue(trade.profitLoss eq -149.9)
-    }
-
-
-    @Test
-    fun `SL on a LONG must be correct`() {
-        val trade = TradeRecord(
-            maxBalanceExposurePercent = 0.05, // 5% of 1000 = 50$ max risk per trade
-            maxLever = 10.0, // max lever allowed by broker
-            feesPercentPerSide = 0.1/100.0, // 0.1% fee of current price
-            type = TradeType.LONG,
-            timestamp = currentTime,
-            balanceIn = 1000.0,
-            entryPrice = 100.0, // open price
-            stopLoss = 99.8 // 0.2% SL computed by the strategy
-        )
-        assertTrue(trade.stopLoss eq 99.8)
-    }
-
-    @Test
-    fun `SL on a SHORT must be correct`() {
-        val trade = TradeRecord(
-            maxBalanceExposurePercent = 0.05, // 5% of 1000 = 50$ max risk per trade
-            maxLever = 10.0, // max lever allowed by broker
-            feesPercentPerSide = 0.1/100.0, // 0.1% fee of current price
-            type = TradeType.SHORT,
-            timestamp = currentTime,
-            balanceIn = 1000.0,
-            entryPrice = 100.0, // open price
-            stopLoss = 100.2 // 0.2% SL computed by the strategy
-        )
-        assertTrue(trade.stopLoss eq 100.2)
+        assertTrue(trade.fees eq 19.98)
+        assertTrue(trade.profitLoss eq -(trade.riskValue+trade.fees))
     }
 
     @Test
@@ -128,12 +136,15 @@ internal class TradeRecordTest {
             entryPrice = 100.0, // open price
             stopLoss = 95.0 // 5% SL computed by the strategy
         )
+        trade.updateCurrentPrice(0.0, 2L)
         assertTrue(trade.theoriqTrade eq 10000.0)
-        assertTrue(trade.realTrade eq 10000.0)
-        assertTrue(trade.riskValue eq 500.0)
+        assertTrue(trade.realTrade eq 9615.3846)
+        assertTrue(trade.riskValue eq 480.769)
         assertTrue(trade.stopLossPercent eq 0.05)
         assertTrue(trade.lever eq 100.0)
-        assertTrue(trade.locked eq 100.0)
+        assertTrue(trade.locked eq 96.1538)
+        assertTrue(trade.fees eq 18.75)
+        assertTrue(trade.profitLoss eq -499.519)
     }
 
     @Test
@@ -149,13 +160,14 @@ internal class TradeRecordTest {
             stopLoss = 99.8 // 0.2% SL computed by the strategy
         )
         assertTrue(trade.theoriqTrade eq 25000.0)
-        assertTrue(trade.realTrade eq 25000.0)
+        assertTrue(trade.realTrade eq 12500.0)
         assertTrue(trade.lever eq 100.0)
-        assertTrue(trade.locked eq 250.0)
-        assertTrue(trade.riskValue eq 50.0)
+        assertTrue(trade.locked eq 125.0)
+        assertTrue(trade.riskValue eq 25.0)
         assertTrue(trade.stopLossPercent eq 0.002)
     }
 
+    // TODO: check with small max lever
     @Test
     fun `Lever for SHORT`() {
         val trade = TradeRecord(
@@ -169,10 +181,10 @@ internal class TradeRecordTest {
             stopLoss = 100.2 // 0.2% SL computed by the strategy
         )
         assertTrue(trade.theoriqTrade eq 25000.0)
-        assertTrue(trade.realTrade eq 25000.0)
+        assertTrue(trade.realTrade eq 12500.0)
         assertTrue(trade.lever eq 100.0)
-        assertTrue(trade.locked eq 250.0)
-        assertTrue(trade.riskValue eq 50.0)
+        assertTrue(trade.locked eq 125.0)
+        assertTrue(trade.riskValue eq 25.0)
         assertTrue(trade.stopLossPercent eq 0.002)
     }
 
