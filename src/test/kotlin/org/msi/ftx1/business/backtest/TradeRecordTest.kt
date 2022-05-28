@@ -29,7 +29,7 @@ internal class TradeRecordTest {
             entryPrice = 100.0, // open price
             stopLoss = 99.8 // 0.2% SL computed by the strategy
         )
-        trade.updateCurrentPrice(0.0, 2L)
+        trade.updateCurrentPrice(2L, 0.0)
         assertTrue(trade.stopLoss eq 99.8)
         assertTrue(trade.theoriqTrade eq 25000.0)
         assertTrue(trade.realTrade eq 2272.727)
@@ -52,7 +52,7 @@ internal class TradeRecordTest {
             entryPrice = 100.0, // open price
             stopLoss = 99.8 // 0.2% SL computed by the strategy
         )
-        trade.updateCurrentPrice(0.0, 2L)
+        trade.updateCurrentPrice(2L, 0.0)
         assertTrue(trade.stopLoss eq 99.8)
         assertTrue(trade.theoriqTrade eq 25000.0)
         assertTrue(trade.realTrade eq 2000.0)
@@ -75,7 +75,7 @@ internal class TradeRecordTest {
             entryPrice = 100.0, // open price
             stopLoss = 99.8 // 0.2% SL computed by the strategy
         )
-        trade.updateCurrentPrice(0.0, 2L)
+        trade.updateCurrentPrice(2L, 0.0)
         assertTrue(trade.stopLoss eq 99.8)
         assertTrue(trade.theoriqTrade eq 25000.0)
         assertTrue(trade.realTrade eq 5000.0)
@@ -136,7 +136,7 @@ internal class TradeRecordTest {
             entryPrice = 100.0, // open price
             stopLoss = 95.0 // 5% SL computed by the strategy
         )
-        trade.updateCurrentPrice(0.0, 2L)
+        trade.updateCurrentPrice(2L, 0.0)
         assertTrue(trade.theoriqTrade eq 10000.0)
         assertTrue(trade.realTrade eq 9615.3846)
         assertTrue(trade.riskValue eq 480.769)
@@ -230,7 +230,7 @@ internal class TradeRecordTest {
             entryPrice = 100.0, // open price
             stopLoss = 99.8 // 0.2% SL computed by the strategy
         )
-        trade.updateCurrentPrice(0.0, 2L)
+        trade.updateCurrentPrice(2L, 0.0)
         assertTrue(trade.exitPrice!! eq trade.stopLoss)
         assertEquals(CloseReason.SL, trade.closeReason!!)
         assertFalse(trade.isProfitable)
@@ -254,7 +254,7 @@ internal class TradeRecordTest {
             entryPrice = 100.0, // open price
             stopLoss = 100.2 // 0.2% SL computed by the strategy
         )
-        trade.updateCurrentPrice(200.0, 2L)
+        trade.updateCurrentPrice(2L, 200.0)
         assertTrue(trade.exitPrice!! eq trade.stopLoss)
         assertFalse(trade.isProfitable)
         assertEquals(CloseReason.SL, trade.closeReason!!)
@@ -278,7 +278,7 @@ internal class TradeRecordTest {
             entryPrice = 100.0, // open price
             stopLoss = 99.8 // 0.2% SL computed by the strategy
         )
-        trade.updateCurrentPrice(200.0, 2L)
+        trade.updateCurrentPrice(2L, 200.0)
         trade.exit()
         assertEquals(CloseReason.TP, trade.closeReason!!)
         assertFalse(trade.isOpen)
@@ -301,7 +301,7 @@ internal class TradeRecordTest {
             entryPrice = 100.0, // open price
             stopLoss = 100.2 // 0.2% SL computed by the strategy
         )
-        trade.updateCurrentPrice(0.0, 2L)
+        trade.updateCurrentPrice(2L, 0.0)
         trade.exit()
         assertEquals(CloseReason.TP, trade.closeReason!!)
         assertFalse(trade.isOpen)

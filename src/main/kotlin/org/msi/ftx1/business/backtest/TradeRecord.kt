@@ -16,6 +16,7 @@ enum class CloseReason {
 
 /** A simulated trade record. */
 class TradeRecord(
+    var open: Boolean = false,
     val maxBalanceExposurePercent: Double,
     val maxLever: Double,
     val feesPercentPerSide: Double,
@@ -26,24 +27,30 @@ class TradeRecord(
     stopLoss: Double?,
 ) {
 
-    private var currentPrice: Double = entryPrice
+    private var minPrice: Double = entryPrice
+    private var maxPrice: Double = entryPrice
+    private var currentClose: Double = entryPrice
+    private var currentHigh: Double = entryPrice
+    private var currentLow: Double = entryPrice
     private var currentTime: Long = timestamp
     var closeReason: CloseReason? = null
     var exitPrice: Double? = null
     var exitTimestamp: Long? = null
 
     val feesPercent: Double = feesPercentPerSide
-    val stopLoss: Double = stopLoss ?: maxStopLoss
-    val stopLossPercent = abs(entryPrice-this.stopLoss)/entryPrice
-    val thoriqRiskValue = maxBalanceExposurePercent*balanceIn
-    val theoriqTrade = thoriqRiskValue / stopLossPercent
+    var stopLoss: Double = stopLoss ?: maxStopLoss
+    val thoriqRiskValue = maxBalanceExposurePercent * balanceIn
+
+    val stopLossPercent get() = abs(entryPrice - this.stopLoss) / entryPrice
+    val theoriqTrade get() = thoriqRiskValue / stopLossPercent
+    val totalRisk: Double
     val realTrade: Double
     val riskValue: Double
     val quantity: Double
     val lever: Double
 
     val entryFees: Double get() = quantity * entryPrice * feesPercent
-    val exitFees: Double get() = quantity * currentPrice * feesPercent
+    val exitFees: Double get() = quantity * currentClose * feesPercent
     val volatility: Double get() = ((exitPrice ?: entryPrice) - entryPrice) / entryPrice
     val exposure: Double get() = realTrade
     val isOpen: Boolean get() = closeReason == null
@@ -51,34 +58,34 @@ class TradeRecord(
     val fees: Double get() = entryFees + exitFees
     val locked: Double get() = quantity * entryPrice / lever
     val balanceOut: Double get() = balanceIn + profitLoss
-    val balanceProfitPercent: Double get() = 1- (balanceIn / balanceOut)
+    val balanceProfitPercent: Double get() = 1 - (balanceIn / balanceOut)
 
     private val maxStopLoss
-        get() = when(type) {
-            LONG -> entryPrice*(1-maxBalanceExposurePercent)
-            SHORT -> entryPrice*(1+maxBalanceExposurePercent)
-        }
-
-    val profitLoss: Double
         get() = when (type) {
-            LONG -> quantity * (currentPrice - entryPrice) - fees
-            SHORT -> quantity * (entryPrice - currentPrice) - fees
+            LONG -> entryPrice * (1 - maxBalanceExposurePercent)
+            SHORT -> entryPrice * (1 + maxBalanceExposurePercent)
         }
 
-    val riskRatio: Double
-        get() = profitLoss / exposure * maxLever
+    val profitLoss get() = profitLoss(currentClose)
+    val maxProfitLoss get() = profitLoss(maxPrice)
+    val minProfitLoss get() = profitLoss(minPrice)
 
-    val rawProfitLoss: Double
-        get() = when (type) {
-            LONG -> quantity * (currentPrice - entryPrice)
-            SHORT -> quantity * (entryPrice - currentPrice)
-        }
+    private fun profitLoss(price: Double) = when (type) {
+        LONG -> quantity * (price - entryPrice) - fees
+        SHORT -> quantity * (entryPrice - price) - fees
+    }
+
+    val riskRatio get() = profitLoss / totalRisk
+    val maxRiskRatio get() = maxProfitLoss / totalRisk
+    val minRiskRatio get() = minProfitLoss / totalRisk
+
+    val rawProfitLoss get() = profitLoss - fees
 
     init {
-        val approxTotalFeesPercent = 2.0*feesPercentPerSide
-        val totalRisk = maxBalanceExposurePercent*balanceIn
-        realTrade = min(balanceIn*maxLever, totalRisk / (stopLossPercent + approxTotalFeesPercent))
-        riskValue = stopLossPercent*realTrade
+        val approxTotalFeesPercent = 2.0 * feesPercentPerSide
+        totalRisk = maxBalanceExposurePercent * balanceIn
+        realTrade = min(balanceIn * maxLever, totalRisk / (stopLossPercent + approxTotalFeesPercent))
+        riskValue = stopLossPercent * realTrade
         quantity = realTrade / entryPrice
         lever = maxLever
 
@@ -88,11 +95,31 @@ class TradeRecord(
             throw java.lang.IllegalArgumentException("SL cannot be > to $maxBalanceExposurePercent")
     }
 
-    fun updateCurrentPrice(price: Double, time: Long) {
-        currentPrice = price
+    // comment prendre en compte l'evolution du prix en temps reel (entre chaque close le prix fluctue)
+    //
+    private fun applyStrategy() {
+        if (minRiskRatio > 1.0) {
+            stopLoss = when (type) {
+                LONG -> minPrice
+                SHORT -> maxPrice
+            }
+        }
+    }
+
+    fun updateCurrentPrice(time: Long, close: Double, high: Double = close, low: Double = close) {
+        currentClose = close
         currentTime = time
-        if (shouldStop()) {
-            currentPrice = stopLoss
+        minPrice = min(minPrice, low)
+        maxPrice = max(maxPrice, high)
+
+        applyStrategy()
+
+        if (stopLossTouched()) {
+            currentClose = stopLoss
+            when (type) {
+                LONG -> minPrice = stopLoss
+                SHORT -> maxPrice = stopLoss
+            }
             exit(true)
         }
     }
@@ -104,15 +131,15 @@ class TradeRecord(
     private fun exit(stopLoss: Boolean) {
         require(isOpen)
         this.closeReason = if (stopLoss) CloseReason.SL else CloseReason.TP
-        this.exitPrice = currentPrice
+        this.exitPrice = currentClose
         this.exitTimestamp = currentTime
     }
 
-    private fun shouldStop(): Boolean {
+    private fun stopLossTouched(): Boolean {
         require(isOpen)
-        return when(type) {
-            LONG -> currentPrice <= stopLoss
-            SHORT -> currentPrice >= stopLoss
+        return when (type) {
+            LONG -> minPrice <= stopLoss
+            SHORT -> maxPrice >= stopLoss
         }
     }
 }

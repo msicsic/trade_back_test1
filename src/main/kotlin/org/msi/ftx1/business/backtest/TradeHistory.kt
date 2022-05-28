@@ -29,8 +29,9 @@ class TradeHistory(
 
     val activeTrade: TradeRecord? get() = trades.firstOrNull { it.isOpen }
 
-    fun updateCurrentPrice(chart: BarChart, currentPrice: Double, currentTime: Long) {
-        activeTrade?.updateCurrentPrice(currentPrice, currentTime)
+    // TODO: how to retrace the movement intra bar ?
+    fun updateCurrentPrice(chart: BarChart, close: Double, high: Double, low: Double, currentTime: Long) {
+        activeTrade?.updateCurrentPrice(currentTime, close, high, low)
         strategy.evaluateEntry(chart, this, currentTime)
         activeTrade?.let { strategy.evaluateTrade(chart, this, currentTime, it) }
     }

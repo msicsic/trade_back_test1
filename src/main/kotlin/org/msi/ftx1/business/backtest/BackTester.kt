@@ -79,10 +79,9 @@ object BackTester {
 
         for (inputBar in inputBars._data) {
             timeSeriesManager += inputBar
-            val currentPrice = inputBar.close
             currentTime = inputBar.openTime * 1000
 
-            tradeHistory.updateCurrentPrice(timeSeriesManager, currentPrice, currentTime)
+            tradeHistory.updateCurrentPrice(timeSeriesManager, inputBar.close, inputBar.high, inputBar.low, currentTime)
 
             // Avoids trading before the next close.
             // TODO: improve detection of new bars in the run time series.
