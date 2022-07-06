@@ -3,6 +3,7 @@ package org.msi.ftx1.infra
 import org.msi.ftx1.business.BarChartService
 import org.msi.ftx1.business.CandleChartProvider
 import org.msi.ftx1.business.MarketProvider
+import org.msi.ftx1.business.OrderBookProvider
 import org.msi.ftx1.business.backtest.BackTestDemo
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -11,12 +12,14 @@ fun main() {
     Config().configure().apply {
         Main(
             candleChartProvider = candleChartProvider,
+            orderBookProvider = orderBookProvider
         ).start()
     }
 }
 
 class Main(
     private val candleChartProvider: CandleChartProvider,
+    private val orderBookProvider: OrderBookProvider,
     // private val barChartService: BarChartService,
     // private val marketProvider: MarketProvider
 ) {
@@ -31,7 +34,7 @@ class Main(
 //
         val recentTime = ZonedDateTime.of(2022, 5, 15, 0, 0, 0, 0, ZoneId.systemDefault())
         val fromTime = recentTime.minusDays(700)
-        val demo = BackTestDemo("BTC-PERP", fromTime, recentTime, candleChartProvider)
+        val demo = BackTestDemo("BTC-PERP", fromTime, recentTime, candleChartProvider, orderBookProvider)
         demo.start()
 
 //

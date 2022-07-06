@@ -18,7 +18,6 @@ data class FtxTradeEntry(
     val time: String
 ) {
 
-    // TODO: fix this with UTC TZ
     val timeAsDate get(): LocalDateTime = LocalDateTime.parse(time, dateParserTrades)
     val timeAsMs get(): Long = timeAsDate.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
     val timeAsSeconds get(): Long = timeAsMs / 1000

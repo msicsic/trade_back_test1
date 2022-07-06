@@ -63,7 +63,7 @@ object BackTester {
 
 
     fun run(spec: BackTestSpec, strategy: TradeStrategy): BackTestReport {
-        val inputBars = CandleBarProviderWithCache(spec.provider).getCandleChart(
+        val inputBars = CandleBarProviderWithCache(spec.candleProvider).getCandleChart(
             symbol = spec.symbol,
             interval = spec.runTimeFrame,
             startTime = spec.startTime,

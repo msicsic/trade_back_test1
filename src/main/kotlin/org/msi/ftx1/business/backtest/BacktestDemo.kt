@@ -2,6 +2,7 @@ package org.msi.ftx1.business.backtest
 
 import org.msi.ftx1.business.BarChart
 import org.msi.ftx1.business.CandleChartProvider
+import org.msi.ftx1.business.OrderBookProvider
 import org.msi.ftx1.business.TimeFrame
 import org.msi.ftx1.business.indicator.closePrice
 import org.msi.ftx1.business.indicator.ema
@@ -18,7 +19,8 @@ class BackTestDemo(
     val symbol: String,
     val startTime: ZonedDateTime,
     val endTime: ZonedDateTime,
-    val provider: CandleChartProvider
+    val provider: CandleChartProvider,
+    val orderBookProvider: OrderBookProvider
 ) {
 
     fun start() {
@@ -26,7 +28,8 @@ class BackTestDemo(
         // Sets up the backtest settings.
         val spec = BackTestSpec(
             symbol = symbol,
-            provider = provider,
+            candleProvider = provider,
+            orderBookProvider = orderBookProvider,
             startTime = startTime,
             endTime = endTime,
             // Defines the timeframe the strategy will run on. In this case the strategy will be evaluated every 1 hour,
@@ -40,6 +43,8 @@ class BackTestDemo(
             // The % fee charged by the exchange in each trade. E.g. Binance charges 0.1% per trade.
             feePerTrade = 0.064 / 100.0,
         )
+
+        // TODO: inclure des stats sur l'orderbook dans le trading (liquidité, QT pour up ou down d'un %, et surtout calcul de slippage en fonction du trade)
 
         // TODO: faire un renderer du graphe et des trades
         // TODO: ouvrir des ordres limites en fonction de la bougie courante (ordres dans le futur)

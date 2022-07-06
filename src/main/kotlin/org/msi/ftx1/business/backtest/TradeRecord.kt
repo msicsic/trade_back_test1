@@ -26,7 +26,6 @@ class TradeRecord(
     val entryPrice: Double,
     stopLoss: Double?,
 ) {
-
     private var minPrice: Double = entryPrice
     private var maxPrice: Double = entryPrice
     private var currentClose: Double = entryPrice
@@ -67,19 +66,27 @@ class TradeRecord(
         }
 
     val profitLoss get() = profitLoss(currentClose)
-    val maxProfitLoss get() = profitLoss(maxPrice)
-    val minProfitLoss get() = profitLoss(minPrice)
+    val maxProfitLoss get() = when (type) {
+        LONG -> profitLoss(maxPrice)
+        SHORT -> profitLoss(minPrice)
+    }
+    val minProfitLoss get() = when (type) {
+        LONG -> profitLoss(minPrice)
+        SHORT -> profitLoss(maxPrice)
+    }
 
-    private fun profitLoss(price: Double) = when (type) {
-        LONG -> quantity * (price - entryPrice) - fees
-        SHORT -> quantity * (entryPrice - price) - fees
+    private fun profitLoss(price: Double) = rawProfitLoss(price) - fees
+
+    private fun rawProfitLoss(price: Double) = when (type) {
+        LONG -> quantity * (price - entryPrice)
+        SHORT -> quantity * (entryPrice - price)
     }
 
     val riskRatio get() = profitLoss / totalRisk
     val maxRiskRatio get() = maxProfitLoss / totalRisk
     val minRiskRatio get() = minProfitLoss / totalRisk
 
-    val rawProfitLoss get() = profitLoss - fees
+    val rawProfitLoss get() = rawProfitLoss(currentClose)
 
     init {
         val approxTotalFeesPercent = 2.0 * feesPercentPerSide
@@ -129,14 +136,14 @@ class TradeRecord(
     }
 
     private fun exit(stopLoss: Boolean) {
-        require(isOpen)
+        if (!isOpen) return
         this.closeReason = if (stopLoss) CloseReason.SL else CloseReason.TP
         this.exitPrice = currentClose
         this.exitTimestamp = currentTime
     }
 
     private fun stopLossTouched(): Boolean {
-        require(isOpen)
+        if (!isOpen) return false
         return when (type) {
             LONG -> minPrice <= stopLoss
             SHORT -> maxPrice >= stopLoss

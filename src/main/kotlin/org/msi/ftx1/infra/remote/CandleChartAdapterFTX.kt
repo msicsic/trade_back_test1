@@ -9,7 +9,7 @@ import java.time.ZonedDateTime
 
 class CandleChartAdapterFTX(
     private val client: FtxClient
-) : CandleChartProvider, ChartsProcessor, TradesProvider {
+) : CandleChartProvider, ChartsProcessor, TradesProvider, OrderBookProvider {
 
     override fun getTrades(symbol: String, startTime: ZonedDateTime, endTime: ZonedDateTime) = TradeChart(
         symbol = symbol,
@@ -63,6 +63,9 @@ class CandleChartAdapterFTX(
         }.toMutableList()
     )
 
+    override fun getOrderBook(symbol: String): OrderBook =
+        client.getOrderBook(symbol).toOrderBook()
+
     private fun CoroutineScope.produceSymbols(symbols: List<String>): ReceiveChannel<String> {
         val channelOut = Channel<String>()
         launch {
@@ -108,5 +111,6 @@ class CandleChartAdapterFTX(
             }
         }
     }
+
 
 }

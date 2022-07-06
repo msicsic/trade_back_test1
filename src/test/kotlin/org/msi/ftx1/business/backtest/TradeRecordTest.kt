@@ -315,3 +315,5 @@ internal class TradeRecordTest {
 }
 
 private infix fun Double.eq(other: Double) = if (abs(this - other) < 0.001) true else { System.err.println("$this is not $other"); false }
+
+// TODO: le gain ou perte ne doit pas dépasser le % configuré

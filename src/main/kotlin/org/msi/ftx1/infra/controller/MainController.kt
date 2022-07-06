@@ -39,7 +39,7 @@ class MainController(
             "/ftx/orderbook/{market}" bind GET to {
                 val market = Path.of("market")(it)
 
-                val orderBook = ftxClient.getOrderBooks(market)
+                val orderBook = ftxClient.getOrderBook(market)
 
                 OK(orderBook)
             },

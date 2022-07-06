@@ -28,3 +28,9 @@ interface CandleChartProvider {
         endTime: ZonedDateTime
     ): BarChart
 }
+
+interface OrderBookProvider {
+    fun getOrderBook(
+        symbol: String
+    ): OrderBook
+}

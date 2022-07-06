@@ -24,7 +24,7 @@ class FtxClient(
             .filter { it.enabled && it.type == "spot" && it.quoteCurrency == "USD" }
             .map { it.name }
 
-    fun getOrderBooks(symbol: String): FtxOrderBookResult =
+    fun getOrderBook(symbol: String): FtxOrderBookResult =
         get<FtxOrderBook>("markets/$symbol/orderbook?depth=100").also { orderBook ->
             val totalBuys = orderBook.result.buys.sumOf { it.size }
             val totalSells = orderBook.result.sells.sumOf { it.size }
