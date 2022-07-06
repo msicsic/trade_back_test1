@@ -19,7 +19,7 @@ class TradeHistory(
                 min = balance
             }
         }
-        return min / initialBalance
+        return 1.0 - min / initialBalance
     }
 
     operator fun plusAssign(trade: TradeRecord) {
@@ -29,11 +29,12 @@ class TradeHistory(
 
     val activeTrade: TradeRecord? get() = trades.firstOrNull { it.isOpen }
 
-    // TODO: how to retrace the movement intra bar ?
     fun updateCurrentPrice(chart: BarChart, close: Double, high: Double, low: Double, currentTime: Long) {
-        activeTrade?.updateCurrentPrice(currentTime, close, high, low)
-        strategy.evaluateEntry(chart, this, currentTime)
-        activeTrade?.let { strategy.evaluateTrade(chart, this, currentTime, it) }
+        setOf(close, high, low).forEach { price ->
+            activeTrade?.updateCurrentPrice(currentTime, price)
+            strategy.evaluateEntry(chart, this, currentTime)
+            activeTrade?.let { strategy.evaluateTrade(chart, this, currentTime, it) }
+        }
     }
 
     fun exitActiveTrade() {

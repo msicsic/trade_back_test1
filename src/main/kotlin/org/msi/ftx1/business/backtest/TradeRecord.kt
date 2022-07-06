@@ -29,8 +29,6 @@ class TradeRecord(
     private var minPrice: Double = entryPrice
     private var maxPrice: Double = entryPrice
     private var currentClose: Double = entryPrice
-    private var currentHigh: Double = entryPrice
-    private var currentLow: Double = entryPrice
     private var currentTime: Long = timestamp
     var closeReason: CloseReason? = null
     var exitPrice: Double? = null
@@ -105,19 +103,14 @@ class TradeRecord(
     // comment prendre en compte l'evolution du prix en temps reel (entre chaque close le prix fluctue)
     //
     private fun applyStrategy() {
-        if (minRiskRatio > 1.0) {
-            stopLoss = when (type) {
-                LONG -> minPrice
-                SHORT -> maxPrice
-            }
-        }
+
     }
 
-    fun updateCurrentPrice(time: Long, close: Double, high: Double = close, low: Double = close) {
-        currentClose = close
+    fun updateCurrentPrice(time: Long, currentPrice: Double) {
+        currentClose = currentPrice
         currentTime = time
-        minPrice = min(minPrice, low)
-        maxPrice = max(maxPrice, high)
+        minPrice = min(minPrice, currentPrice)
+        maxPrice = max(maxPrice, currentPrice)
 
         applyStrategy()
 
