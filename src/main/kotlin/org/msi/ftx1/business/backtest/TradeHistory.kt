@@ -29,6 +29,8 @@ class TradeHistory(
 
     val activeTrade: TradeRecord? get() = trades.firstOrNull { it.isOpen }
 
+    val hasActiveTrade: Boolean get() = activeTrade != null
+
     fun updateCurrentPrice(chart: BarChart, close: Double, high: Double, low: Double, currentTime: Long) {
         setOf(close, high, low).forEach { price ->
             activeTrade?.updateCurrentPrice(currentTime, price)

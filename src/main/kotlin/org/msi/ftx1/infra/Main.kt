@@ -33,7 +33,7 @@ class Main(
 //        )
 //
         val recentTime = ZonedDateTime.of(2022, 5, 15, 0, 0, 0, 0, ZoneId.systemDefault())
-        val fromTime = recentTime.minusDays(700)
+        val fromTime = recentTime.minusDays(1)
         val demo = BackTestDemo("BTC-PERP", fromTime, recentTime, candleChartProvider, orderBookProvider)
         demo.start()
 

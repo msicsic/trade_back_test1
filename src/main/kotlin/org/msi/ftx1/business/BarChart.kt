@@ -1,8 +1,5 @@
 package org.msi.ftx1.business
 
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.*
 
@@ -47,7 +44,7 @@ data class BarChart(
     /** Merges the bar from a lower time frame into this time series  */
     fun addCandleStick(candle: Bar) {
         // Adds a new bar if the open time is after the latest bar
-        when (val currentBar = getCurrentBar(candle.openTime)) {
+        when (val currentBar = getCurrentBar(candle.openTimeSeconds)) {
             null -> baseBarChart._data.add(Bar(interval, candle))
             else -> currentBar += candle
         }
@@ -56,7 +53,7 @@ data class BarChart(
     private fun getCurrentBar(timestamp: Long): Bar? = latest?.takeIf { it.includesTimestamp(timestamp) }
 
     operator fun get(index: Int) =
-        data.getOrNull(data.size - 1 - index) ?: Bar(interval, (latest?.openTime ?: startTime.seconds) - index * interval.seconds)
+        data.getOrNull(data.size - 1 - index) ?: Bar(interval, (latest?.openTimeSeconds ?: startTime.seconds) - index * interval.seconds)
 
     private fun downSample(interval: TimeFrame) = if (this.interval == interval) this else BarChart(
         symbol = this.symbol,
@@ -74,7 +71,7 @@ data class BarChart(
     }
 
     private fun computeBar(interval: TimeFrame, chunk: List<Bar>) = Bar(
-        openTime = chunk.first().openTime,
+        openTimeSeconds = chunk.first().openTimeSeconds,
         volume = chunk.sumOf { it.volume },
         interval = interval,
         open = chunk.first().open,

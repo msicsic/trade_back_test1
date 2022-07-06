@@ -79,13 +79,13 @@ object BackTester {
 
         for (inputBar in inputBars._data) {
             timeSeriesManager += inputBar
-            currentTime = inputBar.openTime * 1000
+            currentTime = inputBar.openTimeSeconds * 1000
 
             tradeHistory.updateCurrentPrice(timeSeriesManager, inputBar.close, inputBar.high, inputBar.low, currentTime)
 
             // Avoids trading before the next close.
             // TODO: improve detection of new bars in the run time series.
-            if (runTimeSeries.latest?.closeTime != inputBar.closeTime) {
+            if (runTimeSeries.latest?.closeTimeSeconds != inputBar.closeTimeSeconds) {
                 continue
             }
         }

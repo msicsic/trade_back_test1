@@ -53,7 +53,7 @@ class CandleChartAdapterFTX(
         ).map {
             Bar(
                 interval = interval,
-                openTime = it.timeAsSeconds,
+                openTimeSeconds = it.timeAsSeconds,
                 open = it.open,
                 close = it.close,
                 high = it.high,

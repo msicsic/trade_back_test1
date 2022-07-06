@@ -1,22 +1,29 @@
 package org.msi.ftx1.business
 
+import java.time.ZoneId
+import java.time.ZoneOffset.UTC
+import java.time.ZonedDateTime
+import java.util.*
 import kotlin.Double.Companion.NaN
 
 data class Bar(
     val interval: TimeFrame,
-    val openTime: Long,
+    val openTimeSeconds: Long,
     var open: Double,
     var close: Double,
     var high: Double,
     var low: Double,
     var volume: Double
 ) {
-    val closeTime = openTime + interval.seconds
+    val closeTimeSeconds = openTimeSeconds + interval.seconds
+
+    val openTimeAsDate get() = ZonedDateTime.ofInstant(Date(openTimeSeconds*1000).toInstant(), ZoneId.systemDefault())
+    val closeTimeAsDate get() = ZonedDateTime.ofInstant(Date(closeTimeSeconds*1000).toInstant(), ZoneId.systemDefault())
 
     val undefined get() = open.isNaN() || close.isNaN() || high.isNaN() || low.isNaN() || volume.isNaN()
 
     constructor(interval: TimeFrame, timeSeconds: Long) : this(
-        openTime = timeSeconds,
+        openTimeSeconds = timeSeconds,
         interval = interval,
         open = NaN,
         close = NaN,
@@ -26,7 +33,7 @@ data class Bar(
     )
 
     constructor(interval: TimeFrame, timeSeconds: Long, close: Double, volume: Double) : this(
-        openTime = timeSeconds,
+        openTimeSeconds = timeSeconds,
         interval = interval,
         open = close,
         close = close,
@@ -40,7 +47,7 @@ data class Bar(
         otherBar: Bar
     ) : this(
         interval = timeFrame,
-        openTime = otherBar.openTime,
+        openTimeSeconds = otherBar.openTimeSeconds,
         open = otherBar.open,
         high = otherBar.high,
         low = otherBar.low,
@@ -67,5 +74,5 @@ data class Bar(
         }
     }
 
-    fun includesTimestamp(timestamp: Long): Boolean = timestamp in openTime until closeTime
+    fun includesTimestamp(timestamp: Long): Boolean = timestamp in openTimeSeconds until closeTimeSeconds
 }

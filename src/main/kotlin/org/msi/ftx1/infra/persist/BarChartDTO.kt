@@ -37,7 +37,7 @@ data class BarDTO(
 ) {
     fun toBO() = Bar(
         interval = interval,
-        openTime = openTime,
+        openTimeSeconds = openTime,
         open = open,
         close = close,
         high = high,
@@ -48,7 +48,7 @@ data class BarDTO(
 
 fun Bar.toDTO() = BarDTO(
     interval = interval,
-    openTime = openTime,
+    openTime = openTimeSeconds,
     open = open,
     close = close,
     high = high,

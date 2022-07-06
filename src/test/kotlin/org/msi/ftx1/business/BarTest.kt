@@ -28,7 +28,7 @@ internal class BarTest {
     fun `should compute end time`() {
         val bar = Bar(TimeFrame.MIN_5, 100)
 
-        assertEquals(100+5*60, bar.closeTime)
+        assertEquals(100+5*60, bar.closeTimeSeconds)
     }
 
     @Test

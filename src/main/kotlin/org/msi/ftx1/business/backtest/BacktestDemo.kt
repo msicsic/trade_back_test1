@@ -7,6 +7,7 @@ import org.msi.ftx1.business.TimeFrame
 import org.msi.ftx1.business.indicator.closePrice
 import org.msi.ftx1.business.indicator.ema
 import org.msi.ftx1.business.signal.crossedOver
+import org.msi.ftx1.business.signal.crossedUnder
 import java.time.ZonedDateTime
 
 interface TradeStrategy {
@@ -94,10 +95,13 @@ class BackTestDemo(
                 val ema1 = ema(close, 8)
 
                 val longIndicator = close crossedOver ema1
+                val shortIndicator = close crossedUnder ema1
 
-                if (longIndicator[0]) {
+                if (longIndicator[0] && ! history.hasActiveTrade) {
                     history.openTrade(spec, TradeType.LONG, close[0], currentTime, close[0]*(1.0-spec.exposurePercent))
-                } else if (!longIndicator[0]) {
+                }
+
+                if (shortIndicator[0] && ! history.hasActiveTrade) {
                     history.openTrade(spec, TradeType.SHORT, close[0], currentTime, close[0]*(1.0+spec.exposurePercent))
                 }
             }

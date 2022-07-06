@@ -16,9 +16,9 @@ internal class BarChartTest {
             .bar(30.0) // 0
             .chart
 
-        assertEquals(chart.startTime.seconds, chart[2].openTime)
-        assertEquals(chart.startTime.seconds + TimeFrame.MIN_5.seconds * 1, chart[1].openTime)
-        assertEquals(chart.startTime.seconds + TimeFrame.MIN_5.seconds * 2, chart[0].openTime)
+        assertEquals(chart.startTime.seconds, chart[2].openTimeSeconds)
+        assertEquals(chart.startTime.seconds + TimeFrame.MIN_5.seconds * 1, chart[1].openTimeSeconds)
+        assertEquals(chart.startTime.seconds + TimeFrame.MIN_5.seconds * 2, chart[0].openTimeSeconds)
 
         assertEquals(chart[0], chart.latest)
         assertEquals(chart[2], chart.oldest)
@@ -37,7 +37,7 @@ internal class BarChartTest {
             .chart
 
         assertEquals(NaN, chart[3].close)
-        assertEquals(chart.startTime.seconds - TimeFrame.MIN_5.seconds * 1, chart[3].openTime)
+        assertEquals(chart.startTime.seconds - TimeFrame.MIN_5.seconds * 1, chart[3].openTimeSeconds)
     }
 
     @Test
@@ -53,7 +53,7 @@ internal class BarChartTest {
             _data = mutableListOf(
                 Bar(
                     interval = interval,
-                    openTime = timeSeconds,
+                    openTimeSeconds = timeSeconds,
                     open = 5.0,
                     close = 6.0,
                     high = 10.0,
@@ -62,7 +62,7 @@ internal class BarChartTest {
                 ),
                 Bar(
                     interval = interval,
-                    openTime = timeSeconds + interval.seconds * 1,
+                    openTimeSeconds = timeSeconds + interval.seconds * 1,
                     open = 6.0,
                     close = 7.0,
                     high = 11.0,
@@ -71,7 +71,7 @@ internal class BarChartTest {
                 ),
                 Bar(
                     interval = interval,
-                    openTime = timeSeconds + interval.seconds * 2,
+                    openTimeSeconds = timeSeconds + interval.seconds * 2,
                     open = 7.0,
                     close = 8.0,
                     high = 10.0,
@@ -80,7 +80,7 @@ internal class BarChartTest {
                 ),
                 Bar(
                     interval = interval,
-                    openTime = timeSeconds + interval.seconds * 3,
+                    openTimeSeconds = timeSeconds + interval.seconds * 3,
                     open = 7.0,
                     close = 8.0,
                     high = 15.0,
@@ -89,7 +89,7 @@ internal class BarChartTest {
                 ),
                 Bar(
                     interval = interval,
-                    openTime = timeSeconds + interval.seconds * 4,
+                    openTimeSeconds = timeSeconds + interval.seconds * 4,
                     open = 8.0,
                     close = 9.0,
                     high = 14.0,
@@ -108,7 +108,7 @@ internal class BarChartTest {
         assertEquals(5.0, bar1.open)
         assertEquals(8.0, bar1.close)
         assertEquals(30.0, bar1.volume)
-        assertEquals(timeSeconds, bar1.openTime)
+        assertEquals(timeSeconds, bar1.openTimeSeconds)
         assertEquals(TimeFrame.MIN_15, bar1.interval)
 
         val bar2 = newChart.data[1]
@@ -117,7 +117,7 @@ internal class BarChartTest {
         assertEquals(7.0, bar2.open)
         assertEquals(9.0, bar2.close)
         assertEquals(10.0, bar2.volume)
-        assertEquals(timeSeconds + TimeFrame.MIN_15.seconds, bar2.openTime)
+        assertEquals(timeSeconds + TimeFrame.MIN_15.seconds, bar2.openTimeSeconds)
         assertEquals(TimeFrame.MIN_15, bar2.interval)
     }
 }
