@@ -11,3 +11,8 @@ data class PriceAndSize(
 ) {
     override fun toString() = """$price$ ($size)"""
 }
+
+data class OrderBook2(
+    val buys: MutableMap<Double, Double> = mutableMapOf(),
+    val sells: MutableMap<Double, Double> = mutableMapOf(),
+)

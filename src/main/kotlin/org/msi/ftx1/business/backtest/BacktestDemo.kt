@@ -20,7 +20,7 @@ class BackTestDemo(
     val symbol: String,
     val startTime: ZonedDateTime,
     val endTime: ZonedDateTime,
-    val provider: CandleChartProvider,
+    val barProvider: CandleChartProvider,
     val orderBookProvider: OrderBookProvider
 ) {
 
@@ -29,7 +29,7 @@ class BackTestDemo(
         // Sets up the backtest settings.
         val spec = BackTestSpec(
             symbol = symbol,
-            candleProvider = provider,
+            candleProvider = barProvider,
             orderBookProvider = orderBookProvider,
             startTime = startTime,
             endTime = endTime,
@@ -114,3 +114,6 @@ class BackTestDemo(
         report.print()
     }
 }
+
+// TODO: utiliser le volume, en 1 mns les volumes atypiques sont souvent signe de reversal
+// TODO: idéalement se baser sur les trades, et non les bars, et reconstruire dynamiquement les bars

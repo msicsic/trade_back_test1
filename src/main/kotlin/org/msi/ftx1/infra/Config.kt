@@ -8,12 +8,8 @@ import org.http4k.core.HttpHandler
 import org.http4k.format.asConfigurable
 import org.http4k.format.withStandardMappings
 import org.msi.ftx1.business.CandleChartProvider
-import org.msi.ftx1.business.BarChartService
-import org.msi.ftx1.business.MarketProvider
 import org.msi.ftx1.business.OrderBookProvider
-import org.msi.ftx1.infra.controller.MainController
 import org.msi.ftx1.infra.remote.CandleChartAdapterFTX
-import org.msi.ftx1.infra.remote.MarketAdapterFTX
 import org.msi.ftx1.infra.remote.ftx.FtxClient
 
 class Config {
@@ -40,6 +36,7 @@ class Config {
         ftxClient = FtxClient(httpClient, objectMapper)
 
         val mainProvider = CandleChartAdapterFTX(ftxClient)
+        val cachedCandleChartProvider = CandleBarProviderWithCache(mainProvider)
         candleChartProvider = mainProvider
         orderBookProvider = mainProvider
         // marketProvider = MarketAdapterFTX(ftxClient)

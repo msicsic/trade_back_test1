@@ -2,9 +2,149 @@ package org.msi.ftx1.infra.remote.ftx
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import org.http4k.client.WebsocketClient
 import org.http4k.core.HttpHandler
 import org.http4k.core.Method
 import org.http4k.core.Request
+import org.http4k.core.Uri
+import org.http4k.format.Jackson.asJsonObject
+import org.http4k.websocket.Websocket
+import org.http4k.websocket.WsMessage
+import org.msi.ftx1.business.OrderBook2
+import java.lang.Thread.sleep
+
+interface FtxSseHandler {
+    fun register(websocket: Websocket)
+    fun unregister(websocket: Websocket) = Unit
+
+    fun matchMessage(message: Map<String, Any>): Boolean
+
+    fun handleMessage(message: Map<String, Any>)
+}
+
+class PongHandler : FtxSseHandler {
+
+    override fun register(websocket: Websocket) {
+        websocket.send(WsMessage("""{"op": "ping"}"""))
+    }
+
+    override fun matchMessage(message: Map<String, Any>) =
+        message["type"]?.equals("pong") ?: false
+
+    override fun handleMessage(message: Map<String, Any>) {
+        System.err.println("Pong received")
+    }
+}
+
+class OrderBookHandler(val symbol: String, val objectMapper: ObjectMapper) : FtxSseHandler {
+    val orderBook = OrderBook2()
+    var currentSecond = 0L
+
+    override fun register(websocket: Websocket) {
+        websocket.send(WsMessage("""{"op": "subscribe", "channel": "orderbook", "market": "$symbol"}"""))
+    }
+
+    override fun unregister(websocket: Websocket) {
+        websocket.send(WsMessage("""{"op": "unsubscribe", "channel": "orderbook", "market": "$symbol"}"""))
+    }
+
+    override fun matchMessage(message: Map<String, Any>): Boolean {
+        return message["channel"]?.equals("orderbook") ?: false &&
+                message["market"]?.equals(symbol) ?: false && !(message["type"]?.equals("subscribed") ?: false)
+    }
+
+    override fun handleMessage(message: Map<String, Any>) {
+        val data = message["data"] as Map<String, Any>
+        val bids = data["bids"] as ArrayList<ArrayList<Double>>
+        val asks = data["asks"] as ArrayList<ArrayList<Double>>
+        val time = (data["time"] as Double).toLong()
+        if (message["type"] == "partial") {
+            orderBook.buys.clear()
+            orderBook.sells.clear()
+        }
+        // ask = vente
+        asks.forEach {
+            if (it[1] == 0.0) {
+                orderBook.sells.remove(it[0])
+            } else {
+                orderBook.sells[it[0]] = it[1]
+            }
+        }
+        bids.forEach {
+            if (it[1] == 0.0) {
+                orderBook.buys.remove(it[0])
+            } else {
+                orderBook.buys[it[0]] = it[1]
+            }
+        }
+        if (currentSecond != time) {
+            currentSecond = time
+            //System.err.println("orderbook, size ${orderBook.sells.size+orderBook.buys.size}: $orderBook")
+
+            val min = orderBook.buys.keys.minOf { it }
+            val max = orderBook.sells.keys.maxOf { it }
+            val totalBuys = orderBook.buys.values.sum()
+            val totalSells = orderBook.sells.values.sum()
+            val maxBuy = orderBook.buys.entries.maxByOrNull { it.value }
+            val maxSell = orderBook.sells.entries.maxByOrNull { it.value }
+            val message =
+                "range: ${(max-min)/max*100.0}, buy: total: $totalBuys, resist: ${maxBuy?.key} ${maxBuy?.value} // sell: total: $totalSells, resist: ${maxSell?.key} ${maxSell?.value}"
+            System.err.println(message)
+        }
+    }
+
+}
+
+// TODO: il faut récuperer le ticker
+// TODO: il faut homogénéiser les modes backtest et live => eval strat a chaque tick, backtest = ticker virtuel
+// TODO: il faut un historique du backlog => BDD
+
+class FtxSSeClient(
+    val objectMapper: ObjectMapper
+) {
+    lateinit var websocket: Websocket
+
+    val handlers = mutableListOf<FtxSseHandler>(PongHandler())
+    var connected = false
+
+    fun registerOrderBook(symbol: String) {
+        val handler = OrderBookHandler(symbol, objectMapper)
+        handlers.add(handler)
+        handler.register(websocket)
+    }
+
+    fun start() {
+        websocket = WebsocketClient.nonBlocking(Uri.of("wss://ftx.com/ws/"),
+            onError = {
+                System.err.println("shit happened $it")
+            },
+            onConnect = {
+                connected = true
+            })
+        websocket.onMessage { wsMessage ->
+            val message: Map<String, Any> = objectMapper.readValue(wsMessage.bodyString())
+            handlers
+                .filter { it.matchMessage(message) }
+                .forEach { it.handleMessage(message) }
+        }
+        websocket.onClose {
+            connected = false
+            System.err.println("client disconnected $it")
+        }
+        while (!connected) {
+            sleep(100)
+        }
+        handlers.forEach { it.register(websocket) }
+
+//    it.send(WsMessage("""{"op": "ping"}"""))
+//    it.send(WsMessage("""{"op": "subscribe", "channel": "trades", "market": "ETH-PERP"}"""))
+//    it.send(WsMessage("""{"op": "subscribe", "channel": "ticker", "market": "ETH-PERP"}"""))
+//}
+//wsClient.onMessage {
+//    println("non-blocking client received:$it")
+//}
+    }
+}
 
 class FtxClient(
     private val client: HttpHandler,

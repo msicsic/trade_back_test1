@@ -1,10 +1,12 @@
 package org.msi.ftx1.infra
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.msi.ftx1.business.BarChartService
 import org.msi.ftx1.business.CandleChartProvider
 import org.msi.ftx1.business.MarketProvider
 import org.msi.ftx1.business.OrderBookProvider
 import org.msi.ftx1.business.backtest.BackTestDemo
+import org.msi.ftx1.infra.remote.ftx.FtxSSeClient
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
@@ -12,7 +14,8 @@ fun main() {
     Config().configure().apply {
         Main(
             candleChartProvider = candleChartProvider,
-            orderBookProvider = orderBookProvider
+            orderBookProvider = orderBookProvider,
+            objectMapper = objectMapper
         ).start()
     }
 }
@@ -20,6 +23,7 @@ fun main() {
 class Main(
     private val candleChartProvider: CandleChartProvider,
     private val orderBookProvider: OrderBookProvider,
+    private val objectMapper: ObjectMapper
     // private val barChartService: BarChartService,
     // private val marketProvider: MarketProvider
 ) {
@@ -32,9 +36,14 @@ class Main(
 //            endTime = LocalDateTime.now()
 //        )
 //
+        val symbol = "BTC-PERP"
+
         val recentTime = ZonedDateTime.of(2022, 5, 15, 0, 0, 0, 0, ZoneId.systemDefault())
         val fromTime = recentTime.minusDays(1)
-        val demo = BackTestDemo("BTC-PERP", fromTime, recentTime, candleChartProvider, orderBookProvider)
+        val demo = BackTestDemo(symbol, fromTime, recentTime, candleChartProvider, orderBookProvider)
+        val ftxSSeClient = FtxSSeClient(objectMapper)
+        ftxSSeClient.start()
+        ftxSSeClient.registerOrderBook(symbol)
         demo.start()
 
 //
