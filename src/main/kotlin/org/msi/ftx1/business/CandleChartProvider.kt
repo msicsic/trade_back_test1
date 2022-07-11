@@ -12,12 +12,12 @@ interface ChartsProcessor {
     )
 }
 
-interface TradesProvider {
+interface TradesHistoryProvider {
     fun getTrades(
         symbol: String,
         startTime: ZonedDateTime,
         endTime: ZonedDateTime
-    ): TradeChart
+    ): TradeHistory
 }
 
 interface CandleChartProvider {
@@ -34,3 +34,4 @@ interface OrderBookProvider {
         symbol: String
     ): OrderBook
 }
+

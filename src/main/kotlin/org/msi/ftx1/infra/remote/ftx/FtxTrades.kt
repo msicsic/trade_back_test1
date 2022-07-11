@@ -6,16 +6,21 @@ import java.time.format.DateTimeFormatter
 
 data class FtxTrades(
     val success: Boolean,
-    val result: List<FtxTradeEntry>
+    val result: List<FtxTrade>
 )
 
-data class FtxTradeEntry(
+data class FtxTradeBatch(
+    val symbol: String,
+    val trades: List<FtxTrade>
+)
+
+data class FtxTrade(
     val id: Long,
     val liquidation: Boolean,
     val price: Double,
     val side: String,
     val size: Double,
-    val time: String
+    val time: String,
 ) {
 
     val timeAsDate get(): LocalDateTime = LocalDateTime.parse(time, dateParserTrades)

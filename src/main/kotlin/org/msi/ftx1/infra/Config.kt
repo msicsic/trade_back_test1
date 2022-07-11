@@ -11,12 +11,16 @@ import org.msi.ftx1.business.CandleChartProvider
 import org.msi.ftx1.business.OrderBookProvider
 import org.msi.ftx1.infra.remote.CandleChartAdapterFTX
 import org.msi.ftx1.infra.remote.ftx.FtxClient
+import org.msi.ftx1.infra.remote.ftx.FtxSymbolDataProvider
+import org.msi.ftx1.infra.remote.ftx.ws.FtxSseClient
 
 class Config {
 
     lateinit var objectMapper: ObjectMapper
     lateinit var httpClient: HttpHandler
     lateinit var ftxClient: FtxClient
+    lateinit var ftxSseClient: FtxSseClient
+    lateinit var provider: FtxSymbolDataProvider
     // lateinit var mainController: MainController
     lateinit var candleChartProvider: CandleChartProvider
     lateinit var orderBookProvider: OrderBookProvider
@@ -34,6 +38,8 @@ class Config {
             .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false)
         httpClient = JavaHttpClient()
         ftxClient = FtxClient(httpClient, objectMapper)
+        ftxSseClient = FtxSseClient(objectMapper)
+        provider = FtxSymbolDataProvider(ftxSseClient)
 
         val mainProvider = CandleChartAdapterFTX(ftxClient)
         val cachedCandleChartProvider = CandleBarProviderWithCache(mainProvider)

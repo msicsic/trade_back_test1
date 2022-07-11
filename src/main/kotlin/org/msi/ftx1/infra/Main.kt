@@ -1,12 +1,10 @@
 package org.msi.ftx1.infra
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.msi.ftx1.business.BarChartService
-import org.msi.ftx1.business.CandleChartProvider
-import org.msi.ftx1.business.MarketProvider
-import org.msi.ftx1.business.OrderBookProvider
+import org.msi.ftx1.business.*
 import org.msi.ftx1.business.backtest.BackTestDemo
-import org.msi.ftx1.infra.remote.ftx.FtxSSeClient
+import org.msi.ftx1.infra.remote.ftx.FtxSymbolDataProvider
+import org.msi.ftx1.infra.remote.ftx.ws.FtxSseClient
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
@@ -15,7 +13,7 @@ fun main() {
         Main(
             candleChartProvider = candleChartProvider,
             orderBookProvider = orderBookProvider,
-            objectMapper = objectMapper
+            provider = provider
         ).start()
     }
 }
@@ -23,7 +21,7 @@ fun main() {
 class Main(
     private val candleChartProvider: CandleChartProvider,
     private val orderBookProvider: OrderBookProvider,
-    private val objectMapper: ObjectMapper
+    private val provider: SymbolDataProvider
     // private val barChartService: BarChartService,
     // private val marketProvider: MarketProvider
 ) {
@@ -41,9 +39,22 @@ class Main(
         val recentTime = ZonedDateTime.of(2022, 5, 15, 0, 0, 0, 0, ZoneId.systemDefault())
         val fromTime = recentTime.minusDays(1)
         val demo = BackTestDemo(symbol, fromTime, recentTime, candleChartProvider, orderBookProvider)
-        val ftxSSeClient = FtxSSeClient(objectMapper)
-        ftxSSeClient.start()
-        ftxSSeClient.registerOrderBook(symbol)
+
+        provider.start()
+        provider.listenSymbol(symbol)
+        provider.setListener(listener = object : SymbolDataConsumer {
+            override val symbol: String
+                get() = symbol
+
+            override fun orderBookUpdateReceived(orderBook: OrderBook2) {
+                System.err.println("orderbook: $orderBook")
+            }
+
+            override fun tradesUpdateReceived(tradeHistory: TradeHistory) {
+                System.err.println("trades: $tradeHistory")
+            }
+        })
+
         demo.start()
 
 //

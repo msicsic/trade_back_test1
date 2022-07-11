@@ -1,6 +1,8 @@
 package org.msi.ftx1.business
 
+// TODO: le provider peut ne pas supporter ces intervales, il faut gérer cela
 enum class TimeFrame(val seconds: Int) {
+    SEC_1(1),
     SEC_15(15),
     MIN_1(60),
     MIN_5(5 * 60),

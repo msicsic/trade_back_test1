@@ -15,7 +15,7 @@ enum class CloseReason {
 }
 
 /** A simulated trade record. */
-class TradeRecord(
+class BackTestTradeRecord(
     var open: Boolean = false,
     val maxBalanceExposurePercent: Double,
     val maxLever: Double,

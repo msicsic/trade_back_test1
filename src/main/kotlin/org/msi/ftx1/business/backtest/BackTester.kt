@@ -16,7 +16,7 @@ object BackTester {
         val inputTimeFrame = inputBars.interval
         val timeSeriesManager = BarChart(spec.symbol, inputTimeFrame, spec.startTime)
         val runTimeSeries = timeSeriesManager.getDownSampledChart(spec.runTimeFrame)
-        val tradeHistory = TradeHistory(
+        val tradeHistory = BackTestTradeHistory(
             initialBalance = spec.startingBalance,
             strategy = strategy
         )

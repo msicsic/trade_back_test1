@@ -10,9 +10,16 @@ data class FtxOrderBook(
     fun toOrderBook() = result.toOrderBook()
 }
 
+data class FtxOrderBookWithSymbol(
+    val symbol: String,
+    val orderBook: FtxOrderBookResult
+)
+
 data class FtxOrderBookResult(
     val asks: List<Array<Double>>,
-    val bids: List<Array<Double>>
+    val bids: List<Array<Double>>,
+    val time: Double,
+    val action: String
 ) {
     val buys = bids.map { FtxPriceAndSize(it[0], it[1]) }
     val sells = asks.map { FtxPriceAndSize(it[0], it[1]) }

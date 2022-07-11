@@ -9,18 +9,22 @@ import java.time.ZonedDateTime
 
 class CandleChartAdapterFTX(
     private val client: FtxClient
-) : CandleChartProvider, ChartsProcessor, TradesProvider, OrderBookProvider {
+) : CandleChartProvider, ChartsProcessor, TradesHistoryProvider, OrderBookProvider {
 
-    override fun getTrades(symbol: String, startTime: ZonedDateTime, endTime: ZonedDateTime) = TradeChart(
+    override fun getTrades(symbol: String, startTime: ZonedDateTime, endTime: ZonedDateTime) = TradeHistory(
         symbol = symbol,
-        startTimeSeconds = startTime.seconds,
-        endTimeSeconds = endTime.seconds,
-        data = client.getTrades(
+        trades = client.getTrades(
             symbol = symbol,
             startTimeSeconds = startTime.seconds,
             endTimeSeconds = endTime.seconds
         ).map {
-            Trade(it.timeAsSeconds, it.price, it.size)
+            Trade(
+                timeMs = it.timeAsMs,
+                price = it.price,
+                size = it.size,
+                liquidation = it.liquidation,
+                side = it.side
+            )
         }
     )
 

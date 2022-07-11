@@ -11,8 +11,8 @@ import org.msi.ftx1.business.signal.crossedUnder
 import java.time.ZonedDateTime
 
 interface TradeStrategy {
-    fun evaluateTrade(chart: BarChart, history: TradeHistory, currentTime: Long, trade: TradeRecord)
-    fun evaluateEntry(chart: BarChart, history: TradeHistory, currentTime: Long)
+    fun evaluateTrade(chart: BarChart, history: BackTestTradeHistory, currentTime: Long, trade: BackTestTradeRecord)
+    fun evaluateEntry(chart: BarChart, history: BackTestTradeHistory, currentTime: Long)
 }
 
 /** A sample back tester and strategy implementation. */
@@ -78,7 +78,7 @@ class BackTestDemo(
 
         val strategy = object : TradeStrategy {
 
-            override fun evaluateTrade(chart: BarChart, history: TradeHistory, currentTime: Long, trade: TradeRecord) {
+            override fun evaluateTrade(chart: BarChart, history: BackTestTradeHistory, currentTime: Long, trade: BackTestTradeRecord) {
                 val close = chart.closePrice
                 val ema1 = ema(close, 8)
 
@@ -90,7 +90,7 @@ class BackTestDemo(
 //                }
             }
 
-            override fun evaluateEntry(chart: BarChart, history: TradeHistory, currentTime: Long) {
+            override fun evaluateEntry(chart: BarChart, history: BackTestTradeHistory, currentTime: Long) {
                 val close = chart.closePrice
                 val ema1 = ema(close, 8)
 

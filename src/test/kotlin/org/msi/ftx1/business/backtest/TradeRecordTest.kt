@@ -19,7 +19,7 @@ internal class TradeRecordTest {
 
     @Test
     fun `high fees should lower the position`() {
-        val trade = TradeRecord(
+        val trade = BackTestTradeRecord(
             maxBalanceExposurePercent = 0.05, // 5% of 1000 = 50$ max risk per trade
             maxLever = 100.0, // max lever allowed by broker
             feesPercentPerSide = 1.0/100.0, // 0.2% fee of current price
@@ -42,7 +42,7 @@ internal class TradeRecordTest {
 
     @Test
     fun `high fees should lower the position, with low lever`() {
-        val trade = TradeRecord(
+        val trade = BackTestTradeRecord(
             maxBalanceExposurePercent = 0.05, // 5% of 1000 = 50$ max risk per trade
             maxLever = 2.0, // max lever allowed by broker
             feesPercentPerSide = 1.0/100.0, // 0.2% fee of current price
@@ -65,7 +65,7 @@ internal class TradeRecordTest {
 
     @Test
     fun `high fees low lever`() {
-        val trade = TradeRecord(
+        val trade = BackTestTradeRecord(
             maxBalanceExposurePercent = 0.05, // 5% of 1000 = 50$ max risk per trade
             maxLever = 5.0, // max lever allowed by broker
             feesPercentPerSide = 0.2/100.0, // 0.2% fee of current price
@@ -88,7 +88,7 @@ internal class TradeRecordTest {
 
     @Test
     fun `Lever cannot be max than max lever for LONG`() {
-        val trade = TradeRecord(
+        val trade = BackTestTradeRecord(
             maxBalanceExposurePercent = 0.05, // 5% of 1000 = 50$ max risk per trade
             maxLever = 10.0, // max lever allowed by broker
             feesPercentPerSide = 0.1/100.0, // 0.1% fee of current price
@@ -107,7 +107,7 @@ internal class TradeRecordTest {
 
     @Test
     fun `Lever cannot be max than max lever for SHORT`() {
-        val trade = TradeRecord(
+        val trade = BackTestTradeRecord(
             maxBalanceExposurePercent = 0.05, // 5% of 1000 = 50$ max risk per trade
             maxLever = 10.0, // max lever allowed by broker
             feesPercentPerSide = 0.1/100.0, // 0.1% fee of current price
@@ -126,7 +126,7 @@ internal class TradeRecordTest {
 
     @Test
     fun `Lever for LONG should be max allowed to free available money`() {
-        val trade = TradeRecord(
+        val trade = BackTestTradeRecord(
             maxBalanceExposurePercent = 0.05, // 5% of 10000 = 500$ max risk per trade
             maxLever = 100.0, // max lever allowed by broker
             feesPercentPerSide = 0.1/100.0, // 0.1% fee of current price
@@ -149,7 +149,7 @@ internal class TradeRecordTest {
 
     @Test
     fun `Lever for LONG`() {
-        val trade = TradeRecord(
+        val trade = BackTestTradeRecord(
             maxBalanceExposurePercent = 0.05, // 5% of 1000 = 50$ max risk per trade
             maxLever = 100.0, // max lever allowed by broker
             feesPercentPerSide = 0.1/100.0, // 0.1% fee of current price
@@ -170,7 +170,7 @@ internal class TradeRecordTest {
     // TODO: check with small max lever
     @Test
     fun `Lever for SHORT`() {
-        val trade = TradeRecord(
+        val trade = BackTestTradeRecord(
             maxBalanceExposurePercent = 0.05, // 5% of 1000 = 50$ max risk per trade
             maxLever = 100.0, // max lever allowed by broker
             feesPercentPerSide = 0.1/100.0, // 0.1% fee of current price
@@ -190,7 +190,7 @@ internal class TradeRecordTest {
 
     @Test
     fun `computed amount for LONG`() {
-        val trade = TradeRecord(
+        val trade = BackTestTradeRecord(
             maxBalanceExposurePercent = 0.05, // 5% of 1000 = 50$ max risk per trade
             maxLever = 10.0, // max lever allowed by broker
             feesPercentPerSide = 0.1/100.0, // 0.1% fee of current price
@@ -205,7 +205,7 @@ internal class TradeRecordTest {
 
     @Test
     fun `computed amount for SHORT`() {
-        val trade = TradeRecord(
+        val trade = BackTestTradeRecord(
             maxBalanceExposurePercent = 0.05, // 5% of 1000 = 50$ max risk per trade
             maxLever = 10.0, // max lever allowed by broker
             feesPercentPerSide = 0.1/100.0, // 0.1% fee of current price
@@ -220,7 +220,7 @@ internal class TradeRecordTest {
 
     @Test
     fun `when SL is touched on a LONG`() {
-        val trade = TradeRecord(
+        val trade = BackTestTradeRecord(
             maxBalanceExposurePercent = 0.05, // 5% of 1000 = 50$ max risk per trade
             maxLever = 10.0, // max lever allowed by broker
             feesPercentPerSide = 0.1/100.0, // 0.1% fee of current price
@@ -244,7 +244,7 @@ internal class TradeRecordTest {
 
     @Test
     fun `when SL is touched on a SHORT`() {
-        val trade = TradeRecord(
+        val trade = BackTestTradeRecord(
             maxBalanceExposurePercent = 0.05, // 5% of 1000 = 50$ max risk per trade
             maxLever = 10.0, // max lever allowed by broker
             feesPercentPerSide = 0.1/100.0, // 0.1% fee of current price
@@ -268,7 +268,7 @@ internal class TradeRecordTest {
 
     @Test
     fun `when trade is exited, reason should be TP for LONG`() {
-        val trade = TradeRecord(
+        val trade = BackTestTradeRecord(
             maxBalanceExposurePercent = 0.05, // 5% of 1000 = 50$ max risk per trade
             maxLever = 10.0, // max lever allowed by broker
             feesPercentPerSide = 0.1/100.0, // 0.1% fee of current price
@@ -291,7 +291,7 @@ internal class TradeRecordTest {
 
     @Test
     fun `when trade is exited, reason should be TP for SHORT`() {
-        val trade = TradeRecord(
+        val trade = BackTestTradeRecord(
             maxBalanceExposurePercent = 0.05, // 5% of 1000 = 50$ max risk per trade
             maxLever = 10.0, // max lever allowed by broker
             feesPercentPerSide = 0.1/100.0, // 0.1% fee of current price

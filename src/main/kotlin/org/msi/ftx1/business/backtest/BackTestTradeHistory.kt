@@ -2,12 +2,12 @@ package org.msi.ftx1.business.backtest
 
 import org.msi.ftx1.business.BarChart
 
-class TradeHistory(
+class BackTestTradeHistory(
     private val initialBalance: Double,
     private val strategy: TradeStrategy
 ) {
     val balance get() = initialBalance + trades.sumOf { it.profitLoss }
-    val trades: MutableList<TradeRecord> = mutableListOf()
+    val trades: MutableList<BackTestTradeRecord> = mutableListOf()
     val fees: Double get() = trades.sumOf { it.fees }
 
     fun maxDrawDown(): Double {
@@ -22,12 +22,12 @@ class TradeHistory(
         return 1.0 - min / initialBalance
     }
 
-    operator fun plusAssign(trade: TradeRecord) {
+    operator fun plusAssign(trade: BackTestTradeRecord) {
         require(trade.quantity > 0.0)
         trades.add(trade)
     }
 
-    val activeTrade: TradeRecord? get() = trades.firstOrNull { it.isOpen }
+    val activeTrade: BackTestTradeRecord? get() = trades.firstOrNull { it.isOpen }
 
     val hasActiveTrade: Boolean get() = activeTrade != null
 
@@ -46,7 +46,7 @@ class TradeHistory(
     fun openTrade(spec: BackTestSpec, tradeType: TradeType, currentPrice: Double, currentTime: Long, stopLoss: Double) {
         if (activeTrade != null || balance <= 0) return
 
-        this += TradeRecord(
+        this += BackTestTradeRecord(
             maxBalanceExposurePercent = spec.exposurePercent,
             maxLever = spec.maxLever,
             feesPercentPerSide = spec.feePerTrade,
