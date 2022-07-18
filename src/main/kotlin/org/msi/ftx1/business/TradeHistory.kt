@@ -52,4 +52,5 @@ data class Trade(
     val side: String,
 ) {
     val timeSeconds: Long get() = timeMs / 1000
+    val sizeUsd get() = size*price
 }

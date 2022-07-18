@@ -12,5 +12,6 @@ enum class MarketType {
 
 data class Market(
     val name: String,
-    val type: MarketType
+    val type: MarketType,
+    val volumeUsd24h: Double
 )

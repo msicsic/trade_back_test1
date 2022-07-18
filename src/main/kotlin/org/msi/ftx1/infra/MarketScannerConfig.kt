@@ -8,13 +8,15 @@ import org.http4k.core.HttpHandler
 import org.http4k.format.asConfigurable
 import org.http4k.format.withStandardMappings
 import org.msi.ftx1.business.CandleChartProvider
+import org.msi.ftx1.business.MarketProvider
 import org.msi.ftx1.business.OrderBookProvider
 import org.msi.ftx1.infra.remote.CandleChartAdapterFTX
+import org.msi.ftx1.infra.remote.MarketAdapterFTX
 import org.msi.ftx1.infra.remote.ftx.FtxClient
 import org.msi.ftx1.infra.remote.ftx.FtxSymbolDataProvider
 import org.msi.ftx1.infra.remote.ftx.ws.FtxSseClient
 
-class Config {
+class MarketScannerConfig {
 
     lateinit var objectMapper: ObjectMapper
     lateinit var httpClient: HttpHandler
@@ -24,10 +26,10 @@ class Config {
     // lateinit var mainController: MainController
     lateinit var candleChartProvider: CandleChartProvider
     lateinit var orderBookProvider: OrderBookProvider
-    // lateinit var marketProvider: MarketProvider
+    lateinit var marketProvider: MarketProvider
     // lateinit var barChartService: BarChartService
 
-    fun configure(): Config {
+    fun configure(): MarketScannerConfig {
 
         objectMapper = KotlinModule.Builder().build()
             .asConfigurable()
@@ -45,7 +47,7 @@ class Config {
         val cachedCandleChartProvider = CandleBarProviderWithCache(mainProvider)
         candleChartProvider = mainProvider
         orderBookProvider = mainProvider
-        // marketProvider = MarketAdapterFTX(ftxClient)
+        marketProvider = MarketAdapterFTX(ftxClient)
         // barChartService = BarChartService()
         // mainController = MainController(ftxClient, objectMapper)
 

@@ -8,6 +8,21 @@ interface SymbolDataConsumer {
     fun tradesUpdateReceived(tradeHistory: TradeHistory)
 }
 
+class DefaultOrderBookDataConsumer(
+    override val symbol: String,
+    val consumerOB: (OrderBook2) -> Unit,
+    val consumerTrades: (TradeHistory)->Unit
+) : SymbolDataConsumer {
+
+    override fun orderBookUpdateReceived(orderBook: OrderBook2) {
+        consumerOB(orderBook)
+    }
+
+    override fun tradesUpdateReceived(tradeHistory: TradeHistory) {
+        consumerTrades(tradeHistory)
+    }
+}
+
 class DefaultSymbolDataConsumer(
     override val symbol: String
 ) : SymbolDataConsumer {

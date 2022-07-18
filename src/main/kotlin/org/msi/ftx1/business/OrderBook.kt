@@ -2,6 +2,8 @@ package org.msi.ftx1.business
 
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.math.abs
 
 data class OrderBook(
     val buys: List<PriceAndSize>,
@@ -20,11 +22,11 @@ class OrderBook2(
     buys: Map<Double, Double> = mutableMapOf(),
     sells: Map<Double, Double> = mutableMapOf(),
 ) {
-    val buys = buys.toMutableMap()
-    val sells = sells.toMutableMap()
+    val buys = ConcurrentHashMap(buys)
+    val sells = ConcurrentHashMap(sells)
 
-    val lastBuys = mutableMapOf<Double, Double>()
-    val lastSells = mutableMapOf<Double, Double>()
+    val lastBuys = ConcurrentHashMap<Double, Double>()
+    val lastSells = ConcurrentHashMap<Double, Double>()
 
     val buysMin get() = buys.keys.minOrNull() ?: 0.0
     val buysMax get() = buys.keys.maxOrNull() ?: 0.0
@@ -40,6 +42,8 @@ class OrderBook2(
     val rangeBuysPercent get() = (buysMax - buysMin) / buysMin
     val rangeSellsPercent get() = (sellsMax - sellsMin) / sellsMin
     val deltaUpDown get() = BigDecimal(liquidityBuys() - liquiditySells()).setScale(2, RoundingMode.HALF_EVEN)
+
+    fun percentageFromCurrentPrice(price: Double) = abs(sellsMin-price) /sellsMin
 
     fun maxBuyLevels(nb: Int, minSize: Double): List<Pair<Double, Double>> {
         return buys.entries.filter{it.value >= minSize}.sortedByDescending { it.value }.takeLast(nb).map { it.toPair()}

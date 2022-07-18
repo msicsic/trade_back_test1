@@ -2,6 +2,8 @@ package org.msi.ftx1.infra.remote.ftx
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import org.msi.ftx1.business.Market
+import org.msi.ftx1.business.MarketType
 import kotlin.math.abs
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -34,11 +36,15 @@ data class FtxMarketInfo(
     val price: Double,
     val type: String,
     val quoteCurrency: String?,
-    val baseCurrency: String?
+    val baseCurrency: String?,
+    val isEtfMarket: Boolean,
+    val volumeUsd24h: Double
 ) {
     @JsonIgnore
     val token: String = name.split("/").get(0)
 
     @JsonIgnore
     val currency: String = name.split("/").getOrElse(1) { "NA" }
+
+    fun toMarket() = Market(name, if (type == "spot") MarketType.SPOT else MarketType.FUTURE, volumeUsd24h)
 }

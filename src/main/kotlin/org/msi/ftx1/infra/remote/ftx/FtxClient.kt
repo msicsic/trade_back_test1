@@ -5,6 +5,8 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import org.http4k.core.HttpHandler
 import org.http4k.core.Method
 import org.http4k.core.Request
+import org.msi.ftx1.business.Market
+import org.msi.ftx1.business.MarketType
 
 // TODO: il faut homogénéiser les modes backtest et live => eval strat a chaque tick, backtest = ticker virtuel
 // TODO: il faut un historique du backlog => BDD
@@ -17,15 +19,15 @@ class FtxClient(
         get<FtxMarkets>("markets")
             .findArbitrable()
 
-    fun getFutureMarkets(): List<String> =
+    fun getFutureMarkets(): List<Market> =
         get<FtxFuturesMarket>("futures").result
             .filter { it.enabled && !it.expired && it.perpetual }
-            .map { it.name }
+            .map { it.toMarket() }
 
-    fun getSpotMarkets(): List<String> =
+    fun getSpotMarkets(): List<Market> =
         get<FtxMarkets>("markets").result
-            .filter { it.enabled && it.type == "spot" && it.quoteCurrency == "USD" }
-            .map { it.name }
+            .filter { it.enabled && it.type == "spot" && it.quoteCurrency == "USD" && !it.isEtfMarket}
+            .map { it.toMarket() }
 
     fun getOrderBook(symbol: String): FtxOrderBookResult =
         get<FtxOrderBook>("markets/$symbol/orderbook?depth=100").also { orderBook ->

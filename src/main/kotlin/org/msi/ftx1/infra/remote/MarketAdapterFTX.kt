@@ -8,10 +8,8 @@ import org.msi.ftx1.infra.remote.ftx.FtxClient
 class MarketAdapterFTX(
     val client: FtxClient
 ) : MarketProvider {
-    override fun getSpotMarkets() =
-        client.getSpotMarkets().map { Market(it, MarketType.SPOT) }
+    override fun getSpotMarkets() = client.getSpotMarkets()
 
-    override fun getFutureMarkets() =
-        client.getFutureMarkets().map { Market(it, MarketType.FUTURE) }
+    override fun getFutureMarkets() = client.getFutureMarkets()
 
 }

@@ -1,15 +1,12 @@
 package org.msi.ftx1.infra
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.msi.ftx1.business.*
 import org.msi.ftx1.business.backtest.BackTestDemo
-import org.msi.ftx1.infra.remote.ftx.FtxSymbolDataProvider
-import org.msi.ftx1.infra.remote.ftx.ws.FtxSseClient
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
 fun main() {
-    Config().configure().apply {
+    BacktestConfig().configure().apply {
         Main(
             candleChartProvider = candleChartProvider,
             orderBookProvider = orderBookProvider,
@@ -17,6 +14,7 @@ fun main() {
         ).start()
     }
 }
+
 
 class Main(
     private val candleChartProvider: CandleChartProvider,
@@ -40,11 +38,19 @@ class Main(
         val fromTime = recentTime.minusDays(1)
         val demo = BackTestDemo(symbol, fromTime, recentTime, candleChartProvider, orderBookProvider)
 
+        // TODO: la strategie tps reel doit elle s'appliquer a chaque tick ? dans ce cas les calculs lourds doivent etre délégués dans un thread qui traite par lots (buffer) pour ne pas prendre toutes les ressources
+        // Il faut en fait séparer le traitement de la position sur le broker (odres limites, stop loss, take profit) qui doivent etre traités au tick, et le developpement de la strat qui elle peut lagger
+        // TODO: le provider doit inclure l'history provider et l'orderbookprovider
+        // TODO: la stratégie ne doit pas prendre d'intervale en param, et doit traiter les ticks. Elle peut reconstruire des barres sur différents TF en fonction des besoins de calcul
+        // TODO: résolution des ticks? Comme traiter les trades arrivant dans la meme ms ?
+        // TODO: utiliser également un footprint, il faut donc bien garder tous les trades les plus fins
+        // TODO: provider pour le backtest => branché sur un historique au lieu WS
+
+        // TODO: il faut également dev un scanner de marché qui traque les setups sur les différentes paires
+
         provider.start()
-        provider.listenSymbol(symbol)
-        provider.setListener(listener = object : SymbolDataConsumer {
-            override val symbol: String
-                get() = symbol
+        provider.addListener(listener = object : SymbolDataConsumer {
+            override val symbol = symbol
 
             override fun orderBookUpdateReceived(orderBook: OrderBook2) {
                 System.err.println("orderbook: $orderBook")
@@ -90,3 +96,31 @@ class Main(
 //        System.err.println("DONE in $time ms")
     }
 }
+
+// TODO: etudier l'indicateur Coinbase Premium (the_cryptonian) sur tradingview
+
+/*
+TODO LIST
+
+- la strat doit generer et manager des ordre limites au lieu d'ordres market
+- faut il placer les ordres en avances (engagement a priori), ou bien avoir des ordres "en attente de validation" qui observent le prix quand entrée dans la zone d'achat
+  (au risque de perdre l'entrée si mouvement trop rapide)
+
+TODO: passage d'ordres: securité SL + journaliser
+
+ALGO Structure:
+- quand le précédent High ou Low est cassé, on trouve l'autre low ou high dans l'intervalle entre la cassure et le high ou low cassé
+- on ne tient pas compte des meches pour les cassures
+- apres cassure de structure, on peut chercher un POI de retracement. Generalement au dessus des 50% du mouvement (tendance baissiere) ou haut du mouvement (en tendance haissuere)
+
+TODO: alertes quand prix arrive dans POI => pour analyse en 5s comment le prix reagit => prise de decision trade en fonction
+  - idées vrac: trouver une ligne de support qui va dans le sens d'un retournement
+
+TODO: ALGOS
+- structure de marché (multi TF) => comment traiter les ranges apres de fort mouvement ? Faut il un second algo ?
+- trouver les sommets, avec filtre sur le retracement minimum
+- detection des POIs, en ciblant les zones principales (50% retracement, origine mouvement...) et en s'aidant des imbalances
+- algo imbalances et mitigation
+- detection de trendlines
+
+ */
